@@ -1,7 +1,16 @@
 [package]
-name = "scratch-ann"
+name = "scratch"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 memmap2 = "0.9.5"
+rand = "0.9.0"
+rand_distr = "0.5.1"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "euclidean_distance"
+harness = false
