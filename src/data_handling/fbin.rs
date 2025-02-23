@@ -1,7 +1,7 @@
 //! functions for reading and writing fbin files
 
 use std::fs::File;
-use std::io::{BufReader, BufWriter, Read, Write};
+use std::io::{BufReader, Read};
 use std::path::Path;
 
 use memmap2::Mmap;
