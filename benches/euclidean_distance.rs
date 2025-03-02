@@ -15,12 +15,12 @@ fn euclidean_group(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("euclidean");
     group.bench_function("euclidean 8", |b| b.iter(|| euclidean(&data[0..], &data[5000..], 8)));
-    group.bench_function("euclidean 16", |b| b.iter(|| euclidean(&data[0..], &data[5000..], 16)));
-    group.bench_function("euclidean 32", |b| b.iter(|| euclidean(&data[0..], &data[5000..], 32)));
+    // group.bench_function("euclidean 16", |b| b.iter(|| euclidean(&data[0..], &data[5000..], 16)));
+    // group.bench_function("euclidean 32", |b| b.iter(|| euclidean(&data[0..], &data[5000..], 32)));
     group.bench_function("euclidean 64", |b| b.iter(|| euclidean(&data[0..], &data[5000..], 64)));
-    group.bench_function("euclidean 100", |b| b.iter(|| euclidean(&data[0..], &data[5000..], 100)));
-    group.bench_function("euclidean 128", |b| b.iter(|| euclidean(&data[0..], &data[5000..], 128)));
-    group.bench_function("euclidean 256", |b| b.iter(|| euclidean(&data[0..], &data[5000..], 256)));
+    // group.bench_function("euclidean 100", |b| b.iter(|| euclidean(&data[0..], &data[5000..], 100)));
+    // group.bench_function("euclidean 128", |b| b.iter(|| euclidean(&data[0..], &data[5000..], 128)));
+    // group.bench_function("euclidean 256", |b| b.iter(|| euclidean(&data[0..], &data[5000..], 256)));
     group.bench_function("euclidean 300", |b| b.iter(|| euclidean(&data[0..], &data[5000..], 300)));
 
     group.finish();
