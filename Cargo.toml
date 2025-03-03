@@ -11,6 +11,18 @@ rand_distr = "0.5.1"
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
 
+[[bin]]
+name = "main"
+path = "src/main.rs"
+
+[[bin]]
+name = "graph_info"
+path = "src/bin/graph_info.rs"
+
+[[bin]]
+name = "graph_roundtrip"
+path = "src/bin/graph_roundtrip.rs"
+
 [[bench]]
 name = "euclidean_distance"
 harness = false
