@@ -1,7 +1,7 @@
 use std::ops::Sub;
 
 /// calculate the euclidean distance between two vectors
-/// 
+///
 /// Example:
 /// ```
 /// let a = [1.0, 2.0, 3.0];
@@ -14,7 +14,8 @@ where
     T: Copy + Into<f64> + Sub<Output = T>,
 {
     assert!(a.len() >= length && b.len() >= length);
-    let sum = a.iter()
+    let sum = a
+        .iter()
         .zip(b.iter())
         .take(length)
         .map(|(&x, &y)| {
@@ -30,7 +31,8 @@ where
     T: Copy + Into<f64>,
 {
     assert!(a.len() >= length && b.len() >= length);
-    let sum = a.iter()
+    let sum = a
+        .iter()
         .zip(b.iter())
         .take(length)
         .map(|(&x, &y)| {

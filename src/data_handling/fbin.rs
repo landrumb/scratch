@@ -6,11 +6,10 @@ use std::path::Path;
 
 use memmap2::Mmap;
 
-use crate::data_handling::dataset::{VectorDataset, Numeric};
+use crate::data_handling::dataset::{Numeric, VectorDataset};
 
 /// read a dataset from an fbin file
-pub fn read_fbin<T: Numeric>(path: &Path) -> VectorDataset<T>
-{
+pub fn read_fbin<T: Numeric>(path: &Path) -> VectorDataset<T> {
     let file = File::open(path).expect("could not open file");
     let mmap = unsafe { Mmap::map(&file).expect("could not mmap file") };
     let mut reader = BufReader::new(&*mmap);
@@ -20,11 +19,20 @@ pub fn read_fbin<T: Numeric>(path: &Path) -> VectorDataset<T>
 
     let element_size = std::mem::size_of::<T>();
     let expected_size = n as usize * dim as usize * element_size;
-    assert!(mmap.len() == expected_size + 8, "expected {} bytes, got {}", expected_size + 8, mmap.len());
+    assert!(
+        mmap.len() == expected_size + 8,
+        "expected {} bytes, got {}",
+        expected_size + 8,
+        mmap.len()
+    );
 
     let data = {
         let mut data = vec![T::default(); n as usize * dim as usize];
-        reader.read_exact(unsafe { std::slice::from_raw_parts_mut(data.as_mut_ptr() as *mut u8, expected_size) }).expect("could not read data");
+        reader
+            .read_exact(unsafe {
+                std::slice::from_raw_parts_mut(data.as_mut_ptr() as *mut u8, expected_size)
+            })
+            .expect("could not read data");
         Box::from(data)
     };
 

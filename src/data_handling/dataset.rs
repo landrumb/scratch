@@ -4,29 +4,32 @@ use std::ops::Sub;
 
 use crate::distance::euclidean;
 
-pub trait Numeric: Copy +
- Into<f64> +
- Sub<Output = Self> +
- Default {}
+pub trait Numeric: Copy + Into<f64> + Sub<Output = Self> + Default {}
 
 impl Numeric for f32 {}
 impl Numeric for f64 {}
 impl Numeric for i32 {}
 impl Numeric for i8 {}
 
-pub struct VectorDataset<T: Numeric> 
-    {
+pub struct VectorDataset<T: Numeric> {
     data: Box<[T]>,
     pub n: usize,
     pub dim: usize,
 }
 
-impl<T: Numeric> VectorDataset<T> 
+impl<T: Numeric> VectorDataset<T>
 where
     T: Copy + Into<f64> + Sub<Output = T>,
 {
     pub fn new(data: Box<[T]>, n: usize, dim: usize) -> VectorDataset<T> {
-        assert!(data.len() == n * dim, "expected {} elements for a {}x{} dataset, got {}", n * dim, n, dim, data.len());
+        assert!(
+            data.len() == n * dim,
+            "expected {} elements for a {}x{} dataset, got {}",
+            n * dim,
+            n,
+            dim,
+            data.len()
+        );
 
         VectorDataset { data, n, dim }
     }
@@ -39,5 +42,3 @@ where
         euclidean::euclidean(&self.get(i), &self.get(j), self.dim)
     }
 }
-
-
