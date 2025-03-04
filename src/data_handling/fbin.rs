@@ -6,7 +6,8 @@ use std::path::Path;
 
 use memmap2::Mmap;
 
-use crate::data_handling::dataset::{Numeric, VectorDataset};
+use super::dataset::VectorDataset;
+use super::dataset_traits::Numeric;
 
 /// read a dataset from an fbin file
 pub fn read_fbin<T: Numeric>(path: &Path) -> VectorDataset<T> {
