@@ -1,15 +1,22 @@
 //! definitions and implementations of datasets
 
-use std::ops::Sub;
+use std::{iter, ops::Sub};
 
-use crate::distance::euclidean;
+use crate::distance::euclidean::{self, euclidean};
 
-pub trait Numeric: Copy + Into<f64> + Sub<Output = Self> + Default {}
+use super::dataset_traits::{Numeric, Dataset};
 
-impl Numeric for f32 {}
-impl Numeric for f64 {}
-impl Numeric for i32 {}
-impl Numeric for i8 {}
+impl<T: Numeric> Dataset<T> for VectorDataset<T> {
+    fn compare_internal(&self, i: usize, j: usize) -> f64 {
+        self.compare_euclidean(i, j)
+    }
+    fn compare(&self, q: &[T], i: usize) -> f64 {
+        euclidean(q, self.get(i), self.dim)
+    }
+    fn size(&self) -> usize {
+        self.n
+    }
+}
 
 pub struct VectorDataset<T: Numeric> {
     data: Box<[T]>,
@@ -41,4 +48,9 @@ where
     pub fn compare_euclidean(&self, i: usize, j: usize) -> f64 {
         euclidean::euclidean(&self.get(i), &self.get(j), self.dim)
     }
+
 }
+
+// impl<T:Numeric> Iterator for VectorDataset<T> {
+//     type Item = &[T];
+// }
