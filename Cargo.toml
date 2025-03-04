@@ -26,3 +26,7 @@ path = "src/bin/graph_roundtrip.rs"
 [[bench]]
 name = "euclidean_distance"
 harness = false
+
+[[bench]]
+name = "graph_io"
+harness = false
