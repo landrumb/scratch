@@ -4,7 +4,7 @@ use std::cmp::min;
 /// returns the recall of an output relative to the groundtruth
 /// 
 /// the $k$ for the purposes of recall@k is the lesser of the lengths of the output and groundtruth
-fn recall<T: Eq>(output: &[T], groundtruth: &[T]) -> f64 {
+pub fn recall<T: Eq>(output: &[T], groundtruth: &[T]) -> f64 {
     let mut matches = 0;
     let length = min(output.len(), groundtruth.len());
 
