@@ -6,6 +6,16 @@ use std::io::{BufReader, Read, Write};
 pub type IndexT = u32;
 
 // need to implement a Graph trait here and probably move classic graph into its own file
+// Pretty sure this only needs to implement Index
+pub trait Graph {
+    fn neighbors(&self, i: IndexT) -> &[IndexT];
+}
+
+impl Graph for ClassicGraph {
+    fn neighbors(&self, i: IndexT) -> &[IndexT] {
+        self.get_neighborhood(i)
+    }
+}
 
 pub struct ClassicGraph {
     neighborhoods: Box<[Box<[IndexT]>]>,
@@ -32,10 +42,10 @@ impl ClassicGraph {
     /// uses the parlayANN format for compatibility
     pub fn save(&self, path: &str) -> std::io::Result<()> {
         let mut file = std::fs::File::create(path)?;
-        println!(
-            "Writing graph with {} nodes and max degree {}",
-            self.n, self.r
-        );
+        // println!(
+        //     "Writing graph with {} nodes and max degree {}",
+        //     self.n, self.r
+        // );
 
         // Write header: n and r (as u32)
         file.write_all(&self.n.to_le_bytes())?;
@@ -85,7 +95,7 @@ impl ClassicGraph {
         let n = u32::from_le_bytes(header_buf[0..4].try_into().unwrap());
         let r = u32::from_le_bytes(header_buf[4..8].try_into().unwrap()) as usize;
 
-        println!("Reading graph with {} nodes and max degree {}", n, r);
+        // println!("Reading graph with {} nodes and max degree {}", n, r);
 
         // Read all degrees at once
         let mut degrees = vec![0u32; n as usize];
@@ -96,8 +106,8 @@ impl ClassicGraph {
         }
 
         // Calculate total edges
-        let total_edges: usize = degrees.iter().map(|&d| d as usize).sum();
-        println!("Total edges in graph: {}", total_edges);
+        // let total_edges: usize = degrees.iter().map(|&d| d as usize).sum();
+        // println!("Total edges in graph: {}", total_edges);
 
         // Create neighborhoods
         let mut neighborhoods = Vec::with_capacity(n as usize);
@@ -281,7 +291,6 @@ impl ClassicGraph {
     }
 }
 
-/// Implement indexing for ClassicGraph to be similar to the C++ Graph
 impl std::ops::Index<IndexT> for ClassicGraph {
     type Output = [IndexT];
 
