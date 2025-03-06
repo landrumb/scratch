@@ -4,12 +4,16 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+clap = "4.5.31"
 memmap2 = "0.9.5"
 rand = "0.9.0"
 rand_distr = "0.5.1"
+rayon = "1.10.0"
+
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
+tempfile = "3.17.1"
 
 [[bin]]
 name = "main"
@@ -22,6 +26,10 @@ path = "src/bin/graph_info.rs"
 [[bin]]
 name = "graph_roundtrip"
 path = "src/bin/graph_roundtrip.rs"
+
+[[bin]]
+name = "compute_ground_truth"
+path = "src/bin/compute_ground_truth.rs"
 
 [[bench]]
 name = "euclidean_distance"

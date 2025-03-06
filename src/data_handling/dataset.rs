@@ -1,6 +1,6 @@
 //! definitions and implementations of datasets
 
-use std::{iter, ops::Sub};
+use std::{ops::Sub, path::Path};
 
 use crate::distance::euclidean::{self, euclidean};
 
@@ -41,6 +41,11 @@ where
         VectorDataset { data, n, dim }
     }
 
+    /// Loads a dataset from an fbin file
+    pub fn from_file(path: &Path) -> std::io::Result<VectorDataset<T>> {
+        Ok(super::fbin::read_fbin(path))
+    }
+
     pub fn get(&self, i: usize) -> &[T] {
         &self.data[i * self.dim..(i + 1) * self.dim]
     }
@@ -48,7 +53,6 @@ where
     pub fn compare_euclidean(&self, i: usize, j: usize) -> f64 {
         euclidean::euclidean(&self.get(i), &self.get(j), self.dim)
     }
-
 }
 
 // impl<T:Numeric> Iterator for VectorDataset<T> {

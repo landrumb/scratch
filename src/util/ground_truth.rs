@@ -2,7 +2,12 @@
 
 use std::path::Path;
 use std::fs::File;
-use std::io::{Read, Result};
+use std::io::{Read, Write, Result};
+
+use crate::data_handling::dataset_traits::{Dataset, Numeric};
+
+#[cfg(test)]
+mod tests;
 
 pub struct GroundTruth {
     neighbors: Box<[u32]>,
@@ -53,6 +58,40 @@ impl GroundTruth {
         }
     }
 
+    /// Creates a new ground truth structure
+    pub fn new(n: usize, k: usize, neighbors: Vec<u32>, distances: Vec<f32>) -> GroundTruth {
+        assert_eq!(neighbors.len(), n * k, "Neighbors array size mismatch");
+        assert_eq!(distances.len(), n * k, "Distances array size mismatch");
+        
+        GroundTruth {
+            neighbors: neighbors.into_boxed_slice(),
+            distances: distances.into_boxed_slice(),
+            n,
+            k,
+        }
+    }
+
+    /// Writes ground truth to a file in the standard format.
+    pub fn write(&self, gt_filename: &Path) -> Result<()> {
+        let mut file = File::create(gt_filename)?;
+        
+        // Write header: number of points and neighbors
+        file.write_all(&(self.n as u32).to_le_bytes())?;
+        file.write_all(&(self.k as u32).to_le_bytes())?;
+        
+        // Write neighbor IDs
+        for &neighbor in self.neighbors.iter() {
+            file.write_all(&neighbor.to_le_bytes())?;
+        }
+        
+        // Write distances
+        for &distance in self.distances.iter() {
+            file.write_all(&distance.to_le_bytes())?;
+        }
+        
+        Ok(())
+    }
+
     /// returns the neighbors of a point
     pub fn get_neighbors(&self, i: usize) -> &[u32] {
         let start = i * self.k;
@@ -64,5 +103,73 @@ impl GroundTruth {
         let start = i * self.k;
         &self.distances[start..start + self.k]
     }
+}
 
+/// Computes exact ground truth (nearest neighbors) for a query dataset against a reference dataset
+pub fn compute_ground_truth<T>(
+    query_dataset: &(impl Dataset<T> + Sync), 
+    ref_dataset: &(impl Dataset<T> + Sync), 
+    k: usize
+) -> Result<GroundTruth> 
+where 
+    T: Numeric + Send + Sync
+{
+    use rayon::prelude::*;
+    
+    let n = query_dataset.size();
+    let ref_size = ref_dataset.size();
+    
+    // Parallel computation of all query points
+    let results: Vec<(Vec<u32>, Vec<f32>)> = (0..n)
+        .into_par_iter()
+        .map(|i| {
+            // Progress indicator every 100 items
+            if i % 100 == 0 && i > 0 {
+                println!("Processing query {}/{}", i, n);
+            }
+            
+            // Calculate distances to all reference points
+            let mut distances: Vec<(f32, u32)> = (0..ref_size)
+                .map(|j| {
+                    let dist = query_dataset.compare_internal(i, j) as f32;
+                    (dist, j as u32)
+                })
+                .collect();
+            
+            // Sort by distance
+            distances.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+            
+            // Take the k nearest (or fewer if dataset is smaller than k)
+            let top_k = std::cmp::min(k, distances.len());
+            
+            // Extract neighbors and distances
+            let mut neighbors = Vec::with_capacity(k);
+            let mut dists = Vec::with_capacity(k);
+            
+            // Store the results - iterate using take() instead of range loop
+            distances.iter().take(top_k).for_each(|&(dist, idx)| {
+                neighbors.push(idx);
+                dists.push(dist); // No cast needed, already f32
+            });
+            
+            // Pad with zeros if needed
+            for _ in top_k..k {
+                neighbors.push(u32::MAX);
+                dists.push(f32::MAX);
+            }
+            
+            (neighbors, dists)
+        })
+        .collect();
+    
+    // Merge results
+    let mut all_neighbors = Vec::with_capacity(n * k);
+    let mut all_distances = Vec::with_capacity(n * k);
+    
+    for (neighbors, distances) in results {
+        all_neighbors.extend(neighbors);
+        all_distances.extend(distances);
+    }
+    
+    Ok(GroundTruth::new(n, k, all_neighbors, all_distances))
 }
