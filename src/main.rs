@@ -10,11 +10,14 @@ use scratch::data_handling::dataset_traits::Dataset;
 use scratch::data_handling::fbin::read_fbin;
 use scratch::graph::beam_search::beam_search;
 use scratch::graph::graph::{ClassicGraph, Graph};
+use scratch::util::ground_truth::GroundTruth;
+use scratch::util::recall::recall;
 
 fn main() {
     let default_data_file = String::from("data/word2vec-google-news-300_50000_lowercase/base.fbin");
     let default_query_file = String::from("data/word2vec-google-news-300_50000_lowercase/query.fbin");
     let default_graph_file = String::from("data/word2vec-google-news-300_50000_lowercase/outputs/vamana");
+    let default_gt_file = String::from("data/word2vec-google-news-300_50000_lowercase/GT");
 
     // presumably we'll have some command line arguments here
 
@@ -58,4 +61,12 @@ fn main() {
         elapsed.subsec_millis(),
         queries.size().to_f64().unwrap() / elapsed.as_secs_f64()
     );
+
+    // load ground truth
+    let gt = GroundTruth::read(&Path::new(&default_gt_file));
+
+    // compute recall
+    let recall = (0..results.len()).map(|i| recall(results[i].as_slice(), gt.get_neighbors(i))).sum::<f64>() / queries.size().to_f64().unwrap();
+
+    println!("recall: {}", recall);
 }
