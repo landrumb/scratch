@@ -38,3 +38,7 @@ harness = false
 [[bench]]
 name = "graph_io"
 harness = false
+
+[[bench]]
+name = "kmeans"
+harness = false
