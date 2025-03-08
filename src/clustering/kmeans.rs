@@ -3,7 +3,7 @@
 use crate::{data_handling::dataset::VectorDataset, graph::graph::IndexT};
 use rand::Rng;
 
-pub fn kmeans_subset(dataset: &VectorDataset<f32>, k: usize, max_iter: usize, epsilon: f64, indices: &[IndexT]) -> Vec<f32> {
+pub fn kmeans_subset(dataset: &VectorDataset<f32>, k: usize, max_iter: usize, epsilon: f64, indices: &[IndexT]) -> (Vec<f32>, Vec<usize>) {
     let mut centroids = Vec::with_capacity(k * dataset.dim);
     let mut assignments = vec![0; indices.len()];
     let mut counts = vec![0; k];
@@ -88,10 +88,10 @@ pub fn kmeans_subset(dataset: &VectorDataset<f32>, k: usize, max_iter: usize, ep
         }
     }
     
-    centroids
+    (centroids, assignments)
 }
 
-pub fn kmeans(dataset: &VectorDataset<f32>, k: usize, max_iter: usize, epsilon: f64) -> Vec<f32> {
+pub fn kmeans(dataset: &VectorDataset<f32>, k: usize, max_iter: usize, epsilon: f64) -> (Vec<f32>, Vec<usize>) {
     let indices: Vec<IndexT> = (0..dataset.n as u32).collect();
     kmeans_subset(dataset, k, max_iter, epsilon, &indices)
 }
