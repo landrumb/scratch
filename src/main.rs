@@ -12,6 +12,9 @@ use scratch::graph::beam_search::beam_search;
 use scratch::graph::graph::ClassicGraph;
 use scratch::util::ground_truth::GroundTruth;
 use scratch::util::recall::recall;
+use scratch::constructions::ivf::IVFIndex;
+
+use rayon::prelude::*;
 
 fn main() {
     let default_data_file = String::from("data/word2vec-google-news-300_50000_lowercase/base.fbin");
@@ -51,7 +54,10 @@ fn main() {
 
     start = Instant::now();
 
-    let results: Vec<Vec<u32>> = (0..queries.size()).map(|i| beam_search(queries.get(i), &graph, &dataset, 0, 12)).collect();
+    let results: Vec<Vec<u32>> = (0..queries.size())
+        .into_par_iter()
+        .map(|i| beam_search(queries.get(i), &graph, &dataset, 0, 10))
+        .collect();
 
     let elapsed = start.elapsed();
     println!(
@@ -66,7 +72,42 @@ fn main() {
     let gt = GroundTruth::read(&Path::new(&default_gt_file));
 
     // compute recall
-    let recall = (0..results.len()).map(|i| recall(results[i].as_slice(), gt.get_neighbors(i))).sum::<f64>() / queries.size().to_f64().unwrap();
+    let graph_recall = (0..results.len()).map(|i| recall(results[i].as_slice(), gt.get_neighbors(i))).sum::<f64>() / queries.size().to_f64().unwrap();
 
-    println!("recall: {}", recall);
+    println!("recall: {:05}", graph_recall);
+
+    start = Instant::now();
+
+    let ivf = IVFIndex::build(&dataset, 2, 100, 0.01);
+
+    let elapsed = start.elapsed();
+    println!(
+        "built IVF index in {}.{:03} seconds",
+        elapsed.as_secs(),
+        elapsed.subsec_millis()
+    );
+    start = Instant::now();
+
+    let ivf_results: Vec<Vec<u32>> = (0..queries.size())
+        .into_par_iter()
+        .map(|i| ivf.query(queries.get(i), 1, 10)
+            .iter()
+            .map(|r| r.0)
+            .collect()
+        )
+        .collect();
+
+    let elapsed = start.elapsed();
+    println!(
+        "ran {} queries in {}.{:03} seconds ({} QPS)",
+        queries.size(),
+        elapsed.as_secs(),
+        elapsed.subsec_millis(),
+        queries.size().to_f64().unwrap() / elapsed.as_secs_f64()
+    );
+
+    let ivf_recall = (0..ivf_results.len()).map(|i| recall(ivf_results[i].as_slice(), gt.get_neighbors(i))).sum::<f64>() / queries.size().to_f64().unwrap();
+
+    println!("IVF recall: {:05}", ivf_recall);
+
 }
