@@ -4,6 +4,8 @@ use crate::{data_handling::dataset::VectorDataset, graph::graph::IndexT};
 use rand::Rng;
 use rayon::prelude::*;
 
+// TODO: import these from util
+
 #[cfg(feature = "verbose_kmeans")]
 macro_rules! verbose_println {
     ($($arg:tt)*) => {

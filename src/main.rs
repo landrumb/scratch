@@ -5,6 +5,7 @@ use std::path::Path;
 use std::time::Instant;
 
 use rand_distr::num_traits::ToPrimitive;
+use scratch::constructions::kmeans_tree::{self, KMeansTree};
 use scratch::data_handling::dataset::VectorDataset;
 use scratch::data_handling::dataset_traits::Dataset;
 use scratch::data_handling::fbin::read_fbin;
@@ -109,5 +110,18 @@ fn main() {
     let ivf_recall = (0..ivf_results.len()).map(|i| recall(ivf_results[i].as_slice(), gt.get_neighbors(i))).sum::<f64>() / queries.size().to_f64().unwrap();
 
     println!("IVF recall: {:05}", ivf_recall);
+
+    start = Instant::now();
+
+    let kmt = KMeansTree::build_bounded_leaf(&dataset, 5, 500, 10, 0.01);
+
+    let elapsed = start.elapsed();
+    println!(
+        "built KMT index in {}.{:03} seconds, has height {}",
+        elapsed.as_secs(),
+        elapsed.subsec_millis(),
+        kmt.get_max_height()
+    );
+
 
 }
