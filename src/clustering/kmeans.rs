@@ -2,92 +2,118 @@
 
 use crate::{data_handling::dataset::VectorDataset, graph::graph::IndexT};
 use rand::Rng;
+use rayon::prelude::*;
 
-pub fn kmeans_subset(dataset: &VectorDataset<f32>, k: usize, max_iter: usize, epsilon: f64, indices: &[IndexT]) -> (Vec<f32>, Vec<usize>) {
+#[cfg(feature = "verbose_kmeans")]
+macro_rules! verbose_println {
+    ($($arg:tt)*) => {
+        println!($($arg)*);
+    }
+}
+
+#[cfg(not(feature = "verbose_kmeans"))]
+macro_rules! verbose_println {
+    ($($arg:tt)*) => {};
+}
+
+pub fn kmeans_subset(
+    dataset: &VectorDataset<f32>,
+    k: usize,
+    max_iter: usize,
+    epsilon: f64,
+    indices: &[IndexT],
+) -> (Vec<f32>, Vec<usize>) {
+    // Initialize centroids from random indices.
     let mut centroids = Vec::with_capacity(k * dataset.dim);
-    let mut assignments = vec![0; indices.len()];
-    let mut counts = vec![0; k];
-    let mut new_centroids = vec![0.0; k * dataset.dim];
-    let mut distances = vec![0.0; k];
-    let mut iter = 0;
-
-    // initialize centroids as random points in the indices
     let mut rng = rand::rng();
     for _ in 0..k {
-        let centroid = dataset.get(indices[rng.random_range(0..indices.len())] as usize);
+        let rand_index = rng.random_range(0..indices.len());
+        let centroid = dataset.get(indices[rand_index] as usize);
         centroids.extend_from_slice(centroid);
     }
 
-    loop {
-        // Reset assignments and counts
-        for assignment in assignments.iter_mut() {
-            *assignment = 0;
-        }
-        for count in counts.iter_mut() {
-            *count = 0;
-        }
-        for centroid in new_centroids.iter_mut() {
-            *centroid = 0.0;
-        }
+    let mut assignments = vec![0; indices.len()];
+    let mut iter = 0;
 
-        // Assign points to nearest centroid
-        for (i, &idx) in indices.iter().enumerate() {
-            let point = dataset.get(idx as usize);
-            
-            // Calculate distance to each centroid
-            for j in 0..k {
-                let mut dist = 0.0;
-                for d in 0..dataset.dim {
-                    let diff = point[d] - centroids[j * dataset.dim + d];
-                    dist += diff * diff;
+    loop {
+        // Assign points to centroids in parallel.
+        assignments = indices
+            .par_iter()
+            .map(|&idx| {
+                let point = dataset.get(idx as usize);
+                let mut min_idx = 0;
+                let mut min_dist = f32::MAX;
+                for j in 0..k {
+                    let base = j * dataset.dim;
+                    let mut dist = 0.0;
+                    for d in 0..dataset.dim {
+                        let diff = point[d] - centroids[base + d];
+                        dist += diff * diff;
+                    }
+                    if dist < min_dist {
+                        min_dist = dist;
+                        min_idx = j;
+                    }
                 }
-                distances[j] = dist;
-            }
-            
-            // Find closest centroid
-            let mut min_dist = distances[0];
-            let mut min_idx = 0;
-            for j in 1..k {
-                if distances[j] < min_dist {
-                    min_dist = distances[j];
-                    min_idx = j;
-                }
-            }
-            
-            assignments[i] = min_idx;
-            counts[min_idx] += 1;
-            
-            // Add point to new centroid calculation
-            for d in 0..dataset.dim {
-                new_centroids[min_idx * dataset.dim + d] += point[d];
-            }
-        }
-        
-        // Calculate new centroids and check for convergence
+                min_idx
+            })
+            .collect();
+
+        // Parallel reduction: sum contributions to new centroids.
+        let (new_centroids, counts) = indices
+            .par_iter()
+            .enumerate()
+            .fold(
+                || (vec![0.0; k * dataset.dim], vec![0usize; k]),
+                |(mut local_cents, mut local_counts), (i, &idx)| {
+                    let assign = assignments[i];
+                    let point = dataset.get(idx as usize);
+                    local_counts[assign] += 1;
+                    let base = assign * dataset.dim;
+                    for d in 0..dataset.dim {
+                        local_cents[base + d] += point[d];
+                    }
+                    (local_cents, local_counts)
+                },
+            )
+            .reduce(
+                || (vec![0.0; k * dataset.dim], vec![0usize; k]),
+                |(mut acc_cents, mut acc_counts), (loc_cents, loc_counts)| {
+                    for j in 0..k {
+                        acc_counts[j] += loc_counts[j];
+                        let base = j * dataset.dim;
+                        for d in 0..dataset.dim {
+                            acc_cents[base + d] += loc_cents[base + d];
+                        }
+                    }
+                    (acc_cents, acc_counts)
+                },
+            );
+
+        // Update centroids and calculate maximum change.
         let mut max_change = 0.0;
         for j in 0..k {
             if counts[j] > 0 {
+                let base = j * dataset.dim;
                 for d in 0..dataset.dim {
-                    let idx = j * dataset.dim + d;
-                    new_centroids[idx] /= counts[j] as f32;
-                    let change = (new_centroids[idx] - centroids[idx]).abs() as f64;
+                    let new_val = new_centroids[base + d] / counts[j] as f32;
+                    let change = (new_val - centroids[base + d]).abs() as f64;
                     if change > max_change {
                         max_change = change;
                     }
-                    centroids[idx] = new_centroids[idx];
-                    new_centroids[idx] = 0.0;
+                    centroids[base + d] = new_val;
                 }
             }
         }
-        
+
+        verbose_println!("Iteration {}: max change = {}", iter, max_change);
+
         iter += 1;
-        
-        // Check termination conditions
         if max_change < epsilon || iter >= max_iter {
             break;
         }
     }
-    
+
     (centroids, assignments)
 }
 

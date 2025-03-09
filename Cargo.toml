@@ -42,3 +42,6 @@ harness = false
 [[bench]]
 name = "kmeans"
 harness = false
+
+[features]
+verbose_kmeans = []
