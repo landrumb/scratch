@@ -34,7 +34,7 @@ pub struct KMeansTree<'a> {
 }
 
 impl<'a> KMeansTree<'a> {
-    /// constructs a graph that's a kmeans tree
+    /// constructs a kmeans tree
     ///
     /// given subset of points [indices], we run kmeans on the subset,
     /// we do a zany stack based approach with a stack of (NodeID, descendants) tuples
@@ -145,6 +145,7 @@ impl<'a> KMeansTree<'a> {
         results_vec.into_boxed_slice()
     }
 
+    /// internal function to query the tree for the corresponding leaf node
     fn query_tree(&self, query: &[f32]) -> Option<usize> {
         let mut current_node = self.tree.get(self.tree.root_node_id().unwrap()).unwrap();
 

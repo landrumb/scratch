@@ -32,7 +32,7 @@ fn main() {
     let branching_factor_arg = args().nth(4).unwrap_or("5".to_string());
     let branching_factor: usize = branching_factor_arg.parse().unwrap_or(5);
 
-    let max_leaf_size_arg = args().nth(5).unwrap_or("2000".to_string());
+    let max_leaf_size_arg = args().nth(5).unwrap_or("200".to_string());
     let max_leaf_size: usize = max_leaf_size_arg.parse().unwrap_or(2000);
 
     let max_iterations_arg = args().nth(6).unwrap_or("10".to_string());
