@@ -32,6 +32,18 @@ path = "src/bin/graph_roundtrip.rs"
 name = "compute_ground_truth"
 path = "src/bin/compute_ground_truth.rs"
 
+[[bin]]
+name = "load_graph"
+path = "src/bin/load_graph.rs"
+
+[[bin]]
+name = "build_ivf"
+path = "src/bin/build_ivf.rs"
+
+[[bin]]
+name = "build_kmt"
+path = "src/bin/build_kmt.rs"
+
 [[bench]]
 name = "euclidean_distance"
 harness = false

@@ -36,6 +36,7 @@ pub fn kmeans_subset(
 
     let mut assignments = vec![0; indices.len()];
     let mut iter = 0;
+    let mut max_change = 0.0;
 
     loop {
         // Assign points to centroids in parallel.
@@ -60,6 +61,10 @@ pub fn kmeans_subset(
                 min_idx
             })
             .collect();
+
+            if max_change < epsilon || iter >= max_iter {
+                break;
+            }
 
         // Parallel reduction: sum contributions to new centroids.
         let (new_centroids, counts) = indices
@@ -93,7 +98,7 @@ pub fn kmeans_subset(
             );
 
         // Update centroids and calculate maximum change.
-        let mut max_change = 0.0;
+        max_change = 0.0;
         for j in 0..k {
             if counts[j] > 0 {
                 let base = j * dataset.dim;
@@ -111,9 +116,6 @@ pub fn kmeans_subset(
         verbose_println!("Iteration {}: max change = {}", iter, max_change);
 
         iter += 1;
-        if max_change < epsilon || iter >= max_iter {
-            break;
-        }
     }
 
     (centroids, assignments)

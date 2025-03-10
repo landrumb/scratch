@@ -9,7 +9,7 @@ pub trait Dataset<T> {
     fn size(&self) -> usize;
 }
 
-pub trait Numeric: Copy + Into<f64> + Sub<Output = Self> + Default {}
+pub trait Numeric: Copy + Into<f64> + Sub<Output = Self> + Default + Send + Sync {}
 
 impl Numeric for f32 {}
 impl Numeric for f64 {}

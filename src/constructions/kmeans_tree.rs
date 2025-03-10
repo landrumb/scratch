@@ -4,7 +4,7 @@ use std::{collections::{HashMap, VecDeque}, iter::zip};
 
 use id_tree::{self, InsertBehavior::*, Node, NodeId, Tree};
 
-use crate::{clustering::kmeans::kmeans_subset, data_handling::dataset::VectorDataset, graph::graph::{Graph, IndexT}};
+use crate::{clustering::kmeans::kmeans_subset, data_handling::dataset::VectorDataset, distance::euclidean::euclidean, graph::graph::{Graph, IndexT}};
 
 // #[cfg(feature = "verbose_kmt")]
 // macro_rules! verbose_println {
@@ -21,7 +21,7 @@ use crate::{clustering::kmeans::kmeans_subset, data_handling::dataset::VectorDat
 pub struct KMeansTree<'a> {
     tree: Tree<Option<usize>>,
     representatives: VectorDataset<f32>,
-    leaf_to_partition_map: HashMap<NodeId, Vec<IndexT>>,
+    leaf_to_partition_map: HashMap<usize, Vec<IndexT>>,
     dataset: &'a VectorDataset<f32>,
 }
 
@@ -44,7 +44,7 @@ impl<'a> KMeansTree<'a> {
         let mut representatives: Vec<f32> = Vec::new();
         let dim = dataset.dim;
     
-        let mut leaf_to_partition_map: HashMap<NodeId, Vec<IndexT>> = HashMap::new();
+        let mut leaf_to_partition_map: HashMap<usize, Vec<IndexT>> = HashMap::new();
     
         let mut queue: VecDeque<(NodeId, Vec<IndexT>)> = VecDeque::new();
         queue.push_back((
@@ -79,7 +79,7 @@ impl<'a> KMeansTree<'a> {
                 representatives.extend_from_slice(rep);
     
                 if part.len() <= max_leaf_size { // leaf
-                    leaf_to_partition_map.insert(current_node_id, part);
+                    leaf_to_partition_map.insert(tree.get(&current_node_id).unwrap().data().unwrap(), part);
                 } else { // internal node
                     queue.push_back((current_node_id, part));
                 }
@@ -96,7 +96,78 @@ impl<'a> KMeansTree<'a> {
         }
     }
 
+    /// The most basic query procedure possible, just walks to the corresponding leaf and queries it, returning the top k results
+    pub fn query(&self, query: &[f32], k: usize) -> Box<[(IndexT, f32)]> {
+        let nearest_partition = self.query_tree(query);
+        if nearest_partition.is_none() {
+            panic!("No nearest partition found");
+        }
+
+        // query partition indicated by the leaf node
+        let partition: Box<[usize]> = self.leaf_to_partition_map.get(&nearest_partition.unwrap()).unwrap().iter().map(|x| *x as usize).collect();
+
+        // Use the k parameter to limit results
+        let results = self.dataset.brute_force(query, partition.iter().as_slice());
+        let results_vec: Vec<(IndexT, f32)> = results.iter()
+            .take(k)
+            .map(|x| (x.0 as IndexT, x.1))
+            .collect();
+            
+        results_vec.into_boxed_slice()
+    }
+
+    fn query_tree (&self, query: &[f32]) -> Option<usize> {
+        let mut current_node = self.tree.get(self.tree.root_node_id().unwrap()).unwrap();
+        
+        loop {
+            let child_node_ids = current_node.children();
+            
+            if child_node_ids.is_empty() {
+                // We've reached a leaf node
+                return current_node.data().clone();
+            }
+            
+            let child_node_data = child_node_ids
+                .iter()
+                .map(|x| self.tree.get(x).unwrap().data().unwrap())
+                .collect::<Vec<_>>();
+
+            // Find the closest representative among the children
+            let closest = self.representatives.closest(query, &child_node_data);
+            
+            current_node = self.tree.get(&child_node_ids[closest]).unwrap();
+        }
+    }
+
     pub fn get_max_height(&self) -> usize {
         self.tree.height()
+    }
+    
+    pub fn get_leaf_count(&self) -> usize {
+        self.leaf_to_partition_map.len()
+    }
+    
+    pub fn get_total_leaf_points(&self) -> usize {
+        self.leaf_to_partition_map.values().map(|v| v.len()).sum()
+    }
+    
+    /// Debug function to find which partition contains a specific point index
+    pub fn find_point_partition(&self, point_idx: usize) -> Option<usize> {
+        for (partition_id, points) in &self.leaf_to_partition_map {
+            if points.contains(&(point_idx as IndexT)) {
+                return Some(*partition_id);
+            }
+        }
+        None
+    }
+    
+    /// Debug function to get points in a specific partition
+    pub fn get_partition_points(&self, partition_id: usize) -> &Vec<IndexT> {
+        self.leaf_to_partition_map.get(&partition_id).unwrap()
+    }
+    
+    /// Debug function to return which partition a query would end up in
+    pub fn debug_query_partition(&self, query: &[f32]) -> Option<usize> {
+        self.query_tree(query)
     }
 }

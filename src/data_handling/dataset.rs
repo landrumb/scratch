@@ -2,7 +2,9 @@
 
 use std::{ops::Sub, path::Path};
 
-use crate::distance::euclidean::{self, euclidean};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+
+use crate::{distance::euclidean::{self, euclidean}};
 
 use super::dataset_traits::{Numeric, Dataset};
 
@@ -52,6 +54,35 @@ where
 
     pub fn compare_euclidean(&self, i: usize, j: usize) -> f64 {
         euclidean::euclidean(&self.get(i), &self.get(j), self.dim)
+    }
+
+    /// returns id, distance pairs for a subset of the dataset relative to a query
+    pub fn brute_force(&self, query: &[T], subset: &[usize]) -> Box<[(usize, f32)]> {
+        let mut results: Vec<(usize, f32)> = subset
+            .par_iter()
+            .map(|i| (*i, self.compare(query, *i) as f32))
+            .collect();
+
+        results.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+        results.into_boxed_slice()
+    }
+
+    /// returns the index (within the arg slice) of the closest of a set of indices to a query
+    pub fn closest(&self, query: &[T], candidates: &[usize]) -> usize {
+        if candidates.is_empty() {
+            return 0;
+        }
+        
+        candidates
+            .iter()
+            .enumerate()
+            .min_by(|(_, &a), (_, &b)| {
+                let dist_a = self.compare(query, a);
+                let dist_b = self.compare(query, b);
+                dist_a.partial_cmp(&dist_b).unwrap_or(std::cmp::Ordering::Equal)
+            })
+            .map(|(idx, _)| idx)
+            .unwrap_or(0)
     }
 }
 

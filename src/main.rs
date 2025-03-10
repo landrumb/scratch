@@ -113,7 +113,7 @@ fn main() {
 
     start = Instant::now();
 
-    let kmt = KMeansTree::build_bounded_leaf(&dataset, 5, 500, 10, 0.01);
+    let kmt = KMeansTree::build_bounded_leaf(&dataset, 5, 2000, 10, 0.01);
 
     let elapsed = start.elapsed();
     println!(
@@ -123,5 +123,27 @@ fn main() {
         kmt.get_max_height()
     );
 
+    start = Instant::now();
 
+    let kmt_results: Vec<Vec<u32>> = (0..queries.size())
+        .into_par_iter()
+        .map(|i| kmt.query(queries.get(i), 10)
+            .iter()
+            .map(|r| r.0)
+            .collect()
+        )
+        .collect();
+
+    let elapsed = start.elapsed();
+    println!(
+        "ran {} KMT queries in {}.{:03} seconds ({} QPS)",
+        queries.size(),
+        elapsed.as_secs(),
+        elapsed.subsec_millis(),
+        queries.size().to_f64().unwrap() / elapsed.as_secs_f64()
+    );
+
+    let kmt_recall = (0..kmt_results.len()).map(|i| recall(kmt_results[i].as_slice(), gt.get_neighbors(i))).sum::<f64>() / queries.size().to_f64().unwrap();
+
+    println!("KMT recall: {:05}", kmt_recall);
 }
