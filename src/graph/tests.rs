@@ -280,7 +280,7 @@ mod tests {
         cleanup_temp_file(&path2);
 
         // Create initial graph
-        let mut graph = create_test_graph();
+        let graph = create_test_graph();
 
         // First round trip
         assert!(graph.save(&path1).is_ok());

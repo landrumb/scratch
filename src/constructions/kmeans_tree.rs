@@ -8,10 +8,7 @@ use std::{
 use id_tree::{self, InsertBehavior::*, Node, NodeId, Tree};
 
 use crate::{
-    clustering::kmeans::kmeans_subset,
-    data_handling::dataset::VectorDataset,
-    distance::euclidean::euclidean,
-    graph::graph::{Graph, IndexT},
+    clustering::kmeans::kmeans_subset, data_handling::dataset::VectorDataset, graph::graph::IndexT,
 };
 
 // #[cfg(feature = "verbose_kmt")]

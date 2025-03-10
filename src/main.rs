@@ -6,7 +6,7 @@ use std::time::Instant;
 
 use rand_distr::num_traits::ToPrimitive;
 use scratch::constructions::ivf::IVFIndex;
-use scratch::constructions::kmeans_tree::{self, KMeansTree};
+use scratch::constructions::kmeans_tree::KMeansTree;
 use scratch::data_handling::dataset::VectorDataset;
 use scratch::data_handling::dataset_traits::Dataset;
 use scratch::data_handling::fbin::read_fbin;

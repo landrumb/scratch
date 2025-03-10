@@ -9,7 +9,7 @@ use scratch::data_handling::dataset::VectorDataset;
 use scratch::data_handling::dataset_traits::Dataset;
 use scratch::data_handling::fbin::read_fbin;
 use scratch::graph::graph::IndexT;
-use scratch::util::ground_truth::{self, GroundTruth};
+use scratch::util::ground_truth::GroundTruth;
 use scratch::util::recall::recall;
 
 fn main() {
