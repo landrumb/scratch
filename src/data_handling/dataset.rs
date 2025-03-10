@@ -4,9 +4,9 @@ use std::{ops::Sub, path::Path};
 
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
-use crate::{distance::euclidean::{self, euclidean}};
+use crate::distance::euclidean::{self, euclidean};
 
-use super::dataset_traits::{Numeric, Dataset};
+use super::dataset_traits::{Dataset, Numeric};
 
 impl<T: Numeric> Dataset<T> for VectorDataset<T> {
     fn compare_internal(&self, i: usize, j: usize) -> f64 {
@@ -72,14 +72,16 @@ where
         if candidates.is_empty() {
             return 0;
         }
-        
+
         candidates
             .iter()
             .enumerate()
             .min_by(|(_, &a), (_, &b)| {
                 let dist_a = self.compare(query, a);
                 let dist_b = self.compare(query, b);
-                dist_a.partial_cmp(&dist_b).unwrap_or(std::cmp::Ordering::Equal)
+                dist_a
+                    .partial_cmp(&dist_b)
+                    .unwrap_or(std::cmp::Ordering::Equal)
             })
             .map(|(idx, _)| idx)
             .unwrap_or(0)

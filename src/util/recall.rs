@@ -2,7 +2,7 @@
 use std::cmp::min;
 
 /// returns the recall of an output relative to the groundtruth
-/// 
+///
 /// the $k$ for the purposes of recall@k is the lesser of the lengths of the output and groundtruth
 pub fn recall<T: Eq>(output: &[T], groundtruth: &[T]) -> f64 {
     let mut matches = 0;
@@ -14,5 +14,5 @@ pub fn recall<T: Eq>(output: &[T], groundtruth: &[T]) -> f64 {
         }
     }
 
-    return matches as f64 / length as f64
+    return matches as f64 / length as f64;
 }

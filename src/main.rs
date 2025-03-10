@@ -5,6 +5,7 @@ use std::path::Path;
 use std::time::Instant;
 
 use rand_distr::num_traits::ToPrimitive;
+use scratch::constructions::ivf::IVFIndex;
 use scratch::constructions::kmeans_tree::{self, KMeansTree};
 use scratch::data_handling::dataset::VectorDataset;
 use scratch::data_handling::dataset_traits::Dataset;
@@ -13,14 +14,15 @@ use scratch::graph::beam_search::beam_search;
 use scratch::graph::graph::ClassicGraph;
 use scratch::util::ground_truth::GroundTruth;
 use scratch::util::recall::recall;
-use scratch::constructions::ivf::IVFIndex;
 
 use rayon::prelude::*;
 
 fn main() {
     let default_data_file = String::from("data/word2vec-google-news-300_50000_lowercase/base.fbin");
-    let default_query_file = String::from("data/word2vec-google-news-300_50000_lowercase/query.fbin");
-    let default_graph_file = String::from("data/word2vec-google-news-300_50000_lowercase/outputs/vamana");
+    let default_query_file =
+        String::from("data/word2vec-google-news-300_50000_lowercase/query.fbin");
+    let default_graph_file =
+        String::from("data/word2vec-google-news-300_50000_lowercase/outputs/vamana");
     let default_gt_file = String::from("data/word2vec-google-news-300_50000_lowercase/GT");
 
     // presumably we'll have some command line arguments here
@@ -48,7 +50,6 @@ fn main() {
         elapsed.as_secs(),
         elapsed.subsec_millis()
     );
-    
 
     // why bother timing reading queries
     let queries: VectorDataset<f32> = read_fbin(&Path::new(&default_query_file));
@@ -73,7 +74,10 @@ fn main() {
     let gt = GroundTruth::read(&Path::new(&default_gt_file));
 
     // compute recall
-    let graph_recall = (0..results.len()).map(|i| recall(results[i].as_slice(), gt.get_neighbors(i))).sum::<f64>() / queries.size().to_f64().unwrap();
+    let graph_recall = (0..results.len())
+        .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
+        .sum::<f64>()
+        / queries.size().to_f64().unwrap();
 
     println!("recall: {:05}", graph_recall);
 
@@ -91,11 +95,12 @@ fn main() {
 
     let ivf_results: Vec<Vec<u32>> = (0..queries.size())
         .into_par_iter()
-        .map(|i| ivf.query(queries.get(i), 1, 10)
-            .iter()
-            .map(|r| r.0)
-            .collect()
-        )
+        .map(|i| {
+            ivf.query(queries.get(i), 1, 10)
+                .iter()
+                .map(|r| r.0)
+                .collect()
+        })
         .collect();
 
     let elapsed = start.elapsed();
@@ -107,7 +112,10 @@ fn main() {
         queries.size().to_f64().unwrap() / elapsed.as_secs_f64()
     );
 
-    let ivf_recall = (0..ivf_results.len()).map(|i| recall(ivf_results[i].as_slice(), gt.get_neighbors(i))).sum::<f64>() / queries.size().to_f64().unwrap();
+    let ivf_recall = (0..ivf_results.len())
+        .map(|i| recall(ivf_results[i].as_slice(), gt.get_neighbors(i)))
+        .sum::<f64>()
+        / queries.size().to_f64().unwrap();
 
     println!("IVF recall: {:05}", ivf_recall);
 
@@ -127,11 +135,7 @@ fn main() {
 
     let kmt_results: Vec<Vec<u32>> = (0..queries.size())
         .into_par_iter()
-        .map(|i| kmt.query(queries.get(i), 10)
-            .iter()
-            .map(|r| r.0)
-            .collect()
-        )
+        .map(|i| kmt.query(queries.get(i), 10).iter().map(|r| r.0).collect())
         .collect();
 
     let elapsed = start.elapsed();
@@ -143,7 +147,10 @@ fn main() {
         queries.size().to_f64().unwrap() / elapsed.as_secs_f64()
     );
 
-    let kmt_recall = (0..kmt_results.len()).map(|i| recall(kmt_results[i].as_slice(), gt.get_neighbors(i))).sum::<f64>() / queries.size().to_f64().unwrap();
+    let kmt_recall = (0..kmt_results.len())
+        .map(|i| recall(kmt_results[i].as_slice(), gt.get_neighbors(i)))
+        .sum::<f64>()
+        / queries.size().to_f64().unwrap();
 
     println!("KMT recall: {:05}", kmt_recall);
 }

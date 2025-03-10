@@ -62,9 +62,9 @@ pub fn kmeans_subset(
             })
             .collect();
 
-            if max_change < epsilon || iter >= max_iter {
-                break;
-            }
+        if max_change < epsilon || iter >= max_iter {
+            break;
+        }
 
         // Parallel reduction: sum contributions to new centroids.
         let (new_centroids, counts) = indices
@@ -121,7 +121,12 @@ pub fn kmeans_subset(
     (centroids, assignments)
 }
 
-pub fn kmeans(dataset: &VectorDataset<f32>, k: usize, max_iter: usize, epsilon: f64) -> (Vec<f32>, Vec<usize>) {
+pub fn kmeans(
+    dataset: &VectorDataset<f32>,
+    k: usize,
+    max_iter: usize,
+    epsilon: f64,
+) -> (Vec<f32>, Vec<usize>) {
     let indices: Vec<IndexT> = (0..dataset.n as u32).collect();
     kmeans_subset(dataset, k, max_iter, epsilon, &indices)
 }

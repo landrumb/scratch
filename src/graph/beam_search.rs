@@ -5,7 +5,13 @@ use crate::graph::graph::{Graph, IndexT};
 
 type BeamElement = (f64, IndexT, bool);
 
-fn beam_insert<T>(i: IndexT, beam: &mut Vec<BeamElement>, query: &[T], dataset: &dyn Dataset<T>, beam_width: usize) {
+fn beam_insert<T>(
+    i: IndexT,
+    beam: &mut Vec<BeamElement>,
+    query: &[T],
+    dataset: &dyn Dataset<T>,
+    beam_width: usize,
+) {
     // put new element on the end of the beam
     beam.push((dataset.compare(query, i as usize), i, false));
 
@@ -20,19 +26,25 @@ fn beam_insert<T>(i: IndexT, beam: &mut Vec<BeamElement>, query: &[T], dataset: 
     beam.pop();
 }
 
-fn first_unvisited_element(beam: & Vec<BeamElement>) -> Option<usize> {
+fn first_unvisited_element(beam: &Vec<BeamElement>) -> Option<usize> {
     for i in 0..beam.len() {
         if !beam[i].2 {
-            return Some(i)
+            return Some(i);
         }
     }
     None
 }
 
 /// This is a bare-bones beam search.
-/// 
+///
 /// Functionality like returning the visited list is omitted here
-pub fn beam_search<T>(query: &[T], graph: &dyn Graph, dataset: &dyn Dataset<T>, start: IndexT, beam_width: usize) -> Vec<IndexT> {
+pub fn beam_search<T>(
+    query: &[T],
+    graph: &dyn Graph,
+    dataset: &dyn Dataset<T>,
+    start: IndexT,
+    beam_width: usize,
+) -> Vec<IndexT> {
     // initialize the beam and visited list
     // beam elements are (distance, index, visited)
     let mut beam = Vec::<BeamElement>::with_capacity(beam_width + 1);

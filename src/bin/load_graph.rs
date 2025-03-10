@@ -14,19 +14,21 @@ use scratch::util::recall::recall;
 
 fn main() {
     let default_data_file = String::from("data/word2vec-google-news-300_50000_lowercase/base.fbin");
-    let default_query_file = String::from("data/word2vec-google-news-300_50000_lowercase/query.fbin");
-    let default_graph_file = String::from("data/word2vec-google-news-300_50000_lowercase/outputs/vamana");
+    let default_query_file =
+        String::from("data/word2vec-google-news-300_50000_lowercase/query.fbin");
+    let default_graph_file =
+        String::from("data/word2vec-google-news-300_50000_lowercase/outputs/vamana");
     let default_gt_file = String::from("data/word2vec-google-news-300_50000_lowercase/GT");
 
     // Parse arguments
     let data_path_arg = args().nth(1).unwrap_or(default_data_file);
     let data_path = Path::new(&data_path_arg);
-    
+
     let query_path_arg = args().nth(2).unwrap_or(default_query_file);
     let query_path = Path::new(&query_path_arg);
-    
+
     let graph_path_arg = args().nth(3).unwrap_or(default_graph_file);
-    
+
     let gt_path_arg = args().nth(4).unwrap_or(default_gt_file);
     let gt_path = Path::new(&gt_path_arg);
 
@@ -71,6 +73,9 @@ fn main() {
 
     // Load ground truth and compute recall
     let gt = GroundTruth::read(gt_path);
-    let graph_recall = (0..results.len()).map(|i| recall(results[i].as_slice(), gt.get_neighbors(i))).sum::<f64>() / queries.size().to_f64().unwrap();
+    let graph_recall = (0..results.len())
+        .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
+        .sum::<f64>()
+        / queries.size().to_f64().unwrap();
     println!("recall: {:05}", graph_recall);
 }
