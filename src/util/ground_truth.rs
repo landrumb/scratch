@@ -123,11 +123,6 @@ where
     let results: Vec<(Vec<u32>, Vec<f32>)> = (0..n)
         .into_par_iter()
         .map(|i| {
-            // Progress indicator every 100 items
-            if i % 100 == 0 && i > 0 {
-                println!("Processing query {}/{}", i, n);
-            }
-            
             // Calculate distances to all reference points
             let mut distances: Vec<(f32, u32)> = (0..ref_size)
                 .map(|j| {
