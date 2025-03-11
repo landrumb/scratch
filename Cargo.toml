@@ -44,6 +44,10 @@ path = "src/bin/build_ivf.rs"
 name = "build_kmt"
 path = "src/bin/build_kmt.rs"
 
+[[bin]]
+name = "kmt_parameter_exploration"
+path = "src/bin/experiments/kmt_parameter_exploration.rs"
+
 [[bench]]
 name = "euclidean_distance"
 harness = false

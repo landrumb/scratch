@@ -14,5 +14,5 @@ pub fn recall<T: Eq>(output: &[T], groundtruth: &[T]) -> f64 {
         }
     }
 
-    return matches as f64 / length as f64;
+    matches as f64 / length as f64
 }
