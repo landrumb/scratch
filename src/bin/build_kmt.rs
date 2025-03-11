@@ -13,6 +13,23 @@ use scratch::util::ground_truth::GroundTruth;
 use scratch::util::recall::recall;
 
 fn main() {
+    // Print usage if --help is specified
+    if args().any(|arg| arg == "--help" || arg == "-h") {
+        println!("Usage: build_kmt [data_path] [query_path] [gt_path] [branching_factor] [max_leaf_size] [max_iterations] [epsilon] [spillover] [beam_width]");
+        println!("  data_path: Path to base.fbin file (default: data/word2vec-google-news-300_50000_lowercase/base.fbin)");
+        println!("  query_path: Path to query.fbin file (default: data/word2vec-google-news-300_50000_lowercase/query.fbin)");
+        println!("  gt_path: Path to ground truth file (default: data/word2vec-google-news-300_50000_lowercase/GT)");
+        println!("  branching_factor: Number of clusters per level (default: 5)");
+        println!("  max_leaf_size: Maximum number of points in a leaf (default: 200)");
+        println!("  max_iterations: Maximum K-means iterations (default: 10)");
+        println!("  epsilon: Convergence threshold (default: 0.01)");
+        println!("  spillover: Number of nearest centroids to assign each point to (default: 0/1 = no spillover)");
+        println!("  beam_width: Number of paths to explore when querying (default: 0 = standard query)");
+        println!("\nHigher spillover values increase recall at the cost of index size and query time.");
+        println!("A non-zero beam_width enables beam search querying instead of standard querying.");
+        return;
+    }
+
     let default_data_file = String::from("data/word2vec-google-news-300_50000_lowercase/base.fbin");
     let default_query_file =
         String::from("data/word2vec-google-news-300_50000_lowercase/query.fbin");
@@ -29,7 +46,7 @@ fn main() {
     let gt_path = Path::new(&gt_path_arg);
 
     // Parse KMT parameters with defaults from original code
-    let branching_factor_arg = args().nth(4).unwrap_or("5".to_string());
+    let branching_factor_arg = args().nth(4).unwrap_or("10".to_string());
     let branching_factor: usize = branching_factor_arg.parse().unwrap_or(5);
 
     let max_leaf_size_arg = args().nth(5).unwrap_or("200".to_string());
@@ -40,6 +57,14 @@ fn main() {
 
     let epsilon_arg = args().nth(7).unwrap_or("0.01".to_string());
     let epsilon: f64 = epsilon_arg.parse().unwrap_or(0.01);
+    
+    // Add spillover parameter (default: 0 = no spillover)
+    let spillover_arg = args().nth(8).unwrap_or("3".to_string());
+    let spillover: usize = spillover_arg.parse().unwrap_or(0);
+    
+    // Add beam search width parameter (default: 0 = use standard query)
+    let beam_width_arg = args().nth(9).unwrap_or("100".to_string());
+    let beam_width: usize = beam_width_arg.parse().unwrap_or(0);
 
     // Load dataset
     let mut start = Instant::now();
@@ -52,13 +77,15 @@ fn main() {
     );
 
     // Build KMeansTree index
+    println!("Building KMeansTree (spillover factor = {})", spillover);
     start = Instant::now();
-    let kmt = KMeansTree::build_bounded_leaf(
+    let kmt = KMeansTree::build_with_spillover(
         &dataset,
         branching_factor,
         max_leaf_size,
         max_iterations,
         epsilon,
+        spillover,
     );
     let elapsed = start.elapsed();
     println!(
@@ -79,17 +106,32 @@ fn main() {
     // Load queries
     let queries: VectorDataset<f32> = read_fbin(query_path);
 
-    // Run queries
+    // Run queries - use beam search if beam_width > 0
     start = Instant::now();
+    
+    let query_method = if beam_width > 0 {
+        println!("Using beam search query with beam_width={}", beam_width);
+        "beam search"
+    } else {
+        "standard"
+    };
+    
     let kmt_results: Vec<Vec<u32>> = (0..queries.size())
         .into_par_iter()
-        .map(|i| kmt.query(queries.get(i), 10).iter().map(|r| r.0).collect())
+        .map(|i| {
+            if beam_width > 0 {
+                kmt.query_beam_search(queries.get(i), beam_width, 10).iter().map(|r| r.0).collect()
+            } else {
+                kmt.query(queries.get(i), 10).iter().map(|r| r.0).collect()
+            }
+        })
         .collect();
 
     let elapsed = start.elapsed();
     println!(
-        "ran {} KMT queries in {}.{:03} seconds ({} QPS)",
+        "ran {} KMT {} queries in {}.{:03} seconds ({} QPS)",
         queries.size(),
+        query_method,
         elapsed.as_secs(),
         elapsed.subsec_millis(),
         queries.size().to_f64().unwrap() / elapsed.as_secs_f64()
@@ -135,17 +177,25 @@ fn main() {
         .par_iter()
         .map(|&i| {
             let query = dataset.get(i);
-            kmt.query(query, 1) // We want to see if the point finds itself as the 1-NN
-                .iter()
-                .map(|r| r.0)
-                .collect()
+            if beam_width > 0 {
+                kmt.query_beam_search(query, beam_width, 1) // We want to see if the point finds itself as the 1-NN
+                    .iter()
+                    .map(|r| r.0)
+                    .collect()
+            } else {
+                kmt.query(query, 1) // We want to see if the point finds itself as the 1-NN
+                    .iter()
+                    .map(|r| r.0)
+                    .collect()
+            }
         })
         .collect();
 
     let elapsed = start.elapsed();
     println!(
-        "ran {} dataset queries in {}.{:03} seconds ({} QPS)",
+        "ran {} dataset {} queries in {}.{:03} seconds ({} QPS)",
         sample_size,
+        query_method,
         elapsed.as_secs(),
         elapsed.subsec_millis(),
         sample_size as f64 / elapsed.as_secs_f64()
@@ -194,16 +244,21 @@ fn main() {
             let point_partition = kmt.find_point_partition(i);
             println!("   Query point is in partition: {:?}", point_partition);
 
-            // Run separate query to see which partition we search in
-            let query = dataset.get(i);
-            let search_partition = kmt.debug_query_partition(query);
-            println!("   Search led to partition: {:?}", search_partition);
+            // If not using beam search, print standard query path information
+            if beam_width == 0 {
+                // Run separate query to see which partition we search in
+                let query = dataset.get(i);
+                let search_partition = kmt.debug_query_partition(query);
+                println!("   Search led to partition: {:?}", search_partition);
 
-            // See if the point's partition contains the point itself
-            if let Some(partition_id) = search_partition {
-                let partition_points = kmt.get_partition_points(partition_id);
-                let contains_self = partition_points.contains(&(i as IndexT));
-                println!("   Search partition contains self: {}", contains_self);
+                // See if the point's partition contains the point itself
+                if let Some(partition_id) = search_partition {
+                    let partition_points = kmt.get_partition_points(partition_id);
+                    let contains_self = partition_points.contains(&(i as IndexT));
+                    println!("   Search partition contains self: {}", contains_self);
+                }
+            } else {
+                println!("   Using beam search with width: {}", beam_width);
             }
 
             // Calculate direct distance to confirm point should match itself
