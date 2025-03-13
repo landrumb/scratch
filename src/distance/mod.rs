@@ -1,1 +1,3 @@
-pub mod euclidean;
+mod euclidean;
+
+pub use euclidean::*;

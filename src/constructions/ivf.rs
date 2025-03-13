@@ -7,7 +7,7 @@ use rayon::prelude::*;
 use crate::{
     clustering::kmeans::kmeans,
     data_handling::{dataset::VectorDataset, dataset_traits::Dataset},
-    distance::euclidean::euclidean,
+    distance::euclidean,
     graph::IndexT,
 };
 

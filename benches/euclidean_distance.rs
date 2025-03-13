@@ -2,7 +2,7 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use rand_distr::{Distribution, Normal};
 
 use scratch::data_handling::{dataset, fbin};
-use scratch::distance::euclidean::euclidean;
+use scratch::distance::euclidean;
 
 fn euclidean_group(c: &mut Criterion) {
     let mut rng = rand::rng();

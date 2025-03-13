@@ -4,7 +4,7 @@ use std::{ops::Sub, path::Path};
 
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
-use crate::distance::euclidean::{self, euclidean};
+use crate::distance::euclidean;
 
 use super::dataset_traits::{Dataset, Numeric};
 
@@ -53,7 +53,7 @@ where
     }
 
     pub fn compare_euclidean(&self, i: usize, j: usize) -> f64 {
-        euclidean::euclidean(&self.get(i), &self.get(j), self.dim)
+        euclidean(&self.get(i), &self.get(j), self.dim)
     }
 
     /// returns id, distance pairs for a subset of the dataset relative to a query
