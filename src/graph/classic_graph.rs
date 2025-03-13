@@ -5,6 +5,7 @@ use std::io::{BufReader, Read, Write};
 
 use super::{Graph, IndexT, MutableGraph};
 
+//TODO: a slice of slices is allocating each neighborhood separately and storing pointers and lengths we don't need
 pub struct ClassicGraph {
     neighborhoods: Box<[Box<[IndexT]>]>,
     degrees: Box<[IndexT]>,
