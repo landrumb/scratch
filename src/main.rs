@@ -11,7 +11,7 @@ use scratch::data_handling::dataset::VectorDataset;
 use scratch::data_handling::dataset_traits::Dataset;
 use scratch::data_handling::fbin::read_fbin;
 use scratch::graph::beam_search::beam_search;
-use scratch::graph::graph::ClassicGraph;
+use scratch::graph::ClassicGraph;
 use scratch::util::ground_truth::GroundTruth;
 use scratch::util::recall::recall;
 

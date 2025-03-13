@@ -17,7 +17,7 @@ use crate::{
     clustering::kmeans::kmeans_subset, 
     data_handling::dataset::VectorDataset, 
     data_handling::dataset_traits::Dataset,
-    graph::graph::IndexT,
+    graph::IndexT,
 };
 
 // #[cfg(feature = "verbose_kmt")]

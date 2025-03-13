@@ -4,7 +4,7 @@ use rand::Rng;
 use std::fs;
 use std::path::Path;
 
-use scratch::graph::graph::{ClassicGraph, IndexT};
+use scratch::graph::{ClassicGraph, IndexT};
 
 // Size configurations for benchmarks
 const TINY_SIZE: usize = 100;

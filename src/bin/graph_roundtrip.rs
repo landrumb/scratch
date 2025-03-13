@@ -3,7 +3,7 @@ use std::path::Path;
 use std::process;
 use std::time::Instant;
 
-use scratch::graph::graph::ClassicGraph;
+use scratch::graph::ClassicGraph;
 
 /// This utility demonstrates reading a graph from one file and writing it to another
 /// It helps test the roundtrip functionality and provides information about both processes

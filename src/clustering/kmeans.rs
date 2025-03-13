@@ -1,6 +1,6 @@
 //! basic kmeans implementation
 
-use crate::{data_handling::dataset::VectorDataset, graph::graph::IndexT};
+use crate::{data_handling::dataset::VectorDataset, graph::IndexT};
 use rand::Rng;
 use rayon::prelude::*;
 

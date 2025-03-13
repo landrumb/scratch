@@ -3,7 +3,7 @@ use std::env;
 use std::process;
 use std::time::Instant;
 
-use scratch::graph::graph::ClassicGraph;
+use scratch::graph::ClassicGraph;
 
 fn main() {
     // Get the filename from command-line arguments

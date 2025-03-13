@@ -8,7 +8,7 @@ use crate::{
     clustering::kmeans::kmeans,
     data_handling::{dataset::VectorDataset, dataset_traits::Dataset},
     distance::euclidean::euclidean,
-    graph::graph::IndexT,
+    graph::IndexT,
 };
 
 pub struct IVFIndex<'a> {

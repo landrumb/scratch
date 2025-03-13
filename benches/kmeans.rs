@@ -4,7 +4,7 @@ use std::path::Path;
 use scratch::clustering::kmeans::{kmeans, kmeans_subset};
 use scratch::data_handling::dataset::VectorDataset;
 use scratch::data_handling::fbin;
-use scratch::graph::graph::IndexT;
+use scratch::graph::IndexT;
 
 // Size configurations for benchmarks
 const SMALL_K: usize = 8;

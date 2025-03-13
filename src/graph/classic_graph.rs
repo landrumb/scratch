@@ -1,14 +1,15 @@
-//! implementation of a regular degree-limited graph
+//! Implementation of a regular degree-limited graph
 
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
 
-pub type IndexT = u32;
+use super::{Graph, IndexT, MutableGraph};
 
-// need to implement a Graph trait here and probably move classic graph into its own file
-// Pretty sure this only needs to implement Index
-pub trait Graph {
-    fn neighbors(&self, i: IndexT) -> &[IndexT];
+pub struct ClassicGraph {
+    neighborhoods: Box<[Box<[IndexT]>]>,
+    degrees: Box<[IndexT]>,
+    pub n: IndexT, // number of nodes
+    pub r: usize,  // degree limit
 }
 
 impl Graph for ClassicGraph {
@@ -17,11 +18,14 @@ impl Graph for ClassicGraph {
     }
 }
 
-pub struct ClassicGraph {
-    neighborhoods: Box<[Box<[IndexT]>]>,
-    degrees: Box<[IndexT]>,
-    pub n: IndexT, // number of nodes
-    pub r: usize,  // degree limit
+impl MutableGraph for ClassicGraph {
+    fn add_neighbor(&mut self, from: IndexT, to: IndexT) {
+        self.add_edge(from, to);
+    }
+
+    fn set_neighborhood(&mut self, i: IndexT, neighborhood: &[IndexT]) {
+        self.set_neighborhood(i, neighborhood);
+    }
 }
 
 impl ClassicGraph {
@@ -242,6 +246,21 @@ impl ClassicGraph {
         let degree = self.degrees[i_usize] as usize;
         self.neighborhoods[i_usize][..degree].sort_by(comparator);
     }
+
+    /// returns an EdgeRange view of the neighborhood of a node
+    /// this is equivalent to the [] operator in the C++ implementation
+    pub fn get_edge_range(&self, i: IndexT) -> EdgeRange {
+        assert!(i < self.n, "graph index out of range: {}", i);
+        EdgeRange::new(self.get_neighborhood(i), i)
+    }
+}
+
+impl std::ops::Index<IndexT> for ClassicGraph {
+    type Output = [IndexT];
+
+    fn index(&self, index: IndexT) -> &Self::Output {
+        self.get_neighborhood(index)
+    }
 }
 
 /// A wrapper around a slice of neighbors, providing similar functionality to the C++ edgeRange
@@ -279,22 +298,5 @@ impl<'a> std::ops::Index<usize> for EdgeRange<'a> {
             "index exceeds degree while accessing neighbors"
         );
         &self.neighbors[index]
-    }
-}
-
-impl ClassicGraph {
-    /// returns an EdgeRange view of the neighborhood of a node
-    /// this is equivalent to the [] operator in the C++ implementation
-    pub fn get_edge_range(&self, i: IndexT) -> EdgeRange {
-        assert!(i < self.n, "graph index out of range: {}", i);
-        EdgeRange::new(self.get_neighborhood(i), i)
-    }
-}
-
-impl std::ops::Index<IndexT> for ClassicGraph {
-    type Output = [IndexT];
-
-    fn index(&self, index: IndexT) -> &Self::Output {
-        self.get_neighborhood(index)
     }
 }

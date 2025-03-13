@@ -1,7 +1,7 @@
 //! Implementation of beam search over a generic graph
 
 use crate::data_handling::dataset_traits::Dataset;
-use crate::graph::graph::{Graph, IndexT};
+use crate::graph::{Graph, IndexT};
 
 type BeamElement = (f64, IndexT, bool);
 

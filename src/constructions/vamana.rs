@@ -2,7 +2,7 @@
 
 use crate::{
     data_handling::{dataset::VectorDataset, dataset_traits::Dataset},
-    graph::graph::IndexT
+    graph::IndexT
 };
 
 /// robust prune without a degree bound
