@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::graph::graph::ClassicGraph;
+    use crate::graph::ClassicGraph;
     use std::fs;
     use std::io::Write;
     use std::path::Path;
