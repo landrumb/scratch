@@ -18,6 +18,8 @@ use crate::{
     data_handling::dataset_traits::Dataset, graph::IndexT,
 };
 
+use super::VectorIndex;
+
 // #[cfg(feature = "verbose_kmt")]
 // macro_rules! verbose_println {
 //     ($($arg:tt)*) => {
@@ -465,5 +467,19 @@ impl<'a> KMeansTree<'a> {
             .collect();
 
         results_vec.into_boxed_slice()
+    }
+}
+
+impl VectorIndex<f32> for KMeansTree<'_> {
+    /// Does k-NN search on the KMeans tree
+    fn query(&self, query: &[f32], parameters: super::Parameters) -> Vec<IndexT> {
+        let k = parameters.get::<usize>("k");
+        let beam_width = parameters.get::<usize>("beam_width").unwrap_or(&10);
+
+        // Use beam search to find the top k results
+        let results = self.query_beam_search(query, *beam_width, *k.unwrap());
+
+        // Convert results to Vec<IndexT>
+        results.iter().map(|x| x.0).collect()
     }
 }
