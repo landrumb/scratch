@@ -1,3 +1,7 @@
-mod euclidean;
+mod euclidean_;
 
-pub use euclidean::*;
+pub use self::euclidean_::{
+    euclidean,
+    sq_euclidean
+};
+
