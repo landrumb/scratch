@@ -26,7 +26,7 @@ fn beam_insert<T>(
     beam.pop();
 }
 
-fn first_unvisited_element(beam: &Vec<BeamElement>) -> Option<usize> {
+fn first_unvisited_element(beam: &[BeamElement]) -> Option<usize> {
     (0..beam.len()).find(|&i| !beam[i].2)
 }
 

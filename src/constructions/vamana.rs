@@ -6,7 +6,7 @@ use crate::{
 };
 
 /// robust prune without a degree bound
-pub fn robust_prune_unbounded(point: &[f32], mut candidates: Vec<(IndexT, f32)>, alpha: f32, dataset: &VectorDataset<f32>) -> Vec<IndexT> {
+pub fn robust_prune_unbounded(mut candidates: Vec<(IndexT, f32)>, alpha: f32, dataset: &VectorDataset<f32>) -> Vec<IndexT> {
     let mut new_neighbors: Vec<IndexT> = Vec::new();
 
     // Sort candidates by distance, descending

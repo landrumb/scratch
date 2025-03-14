@@ -104,10 +104,10 @@ impl ClassicGraph {
 
         // Read all degrees at once
         let mut degrees = vec![0u32; n as usize];
-        for i in 0..n as usize {
+        for degree in degrees.iter_mut() {
             let mut degree_buf = [0u8; 4];
             reader.read_exact(&mut degree_buf)?;
-            degrees[i] = u32::from_le_bytes(degree_buf);
+            *degree = u32::from_le_bytes(degree_buf);
         }
 
         // Calculate total edges

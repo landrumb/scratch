@@ -38,7 +38,7 @@ pub fn build_slow_preprocesssing(
             
             // Prune remainder of the dataset based on alpha
             
-            robust_prune_unbounded(point, candidates, alpha, dataset)
+            robust_prune_unbounded(candidates, alpha, dataset)
         })
         .collect();
 
