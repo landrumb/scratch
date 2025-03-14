@@ -26,8 +26,9 @@ mod tests {
         assert_eq!(results[0].0, 0);
         assert_eq!(results[0].1, 0.0);
 
-        // Distance between vector 1 and query should be sqrt(2)
-        assert!(f32::abs(results[1].1 - f32::sqrt(2.0)) < 1e-5);
+        // Vector 3 should be second closest
+        assert_eq!(results[1].0, 3);
+        assert_eq!(results[1].1, f32::sqrt(0.5));
     }
 
     #[test]
