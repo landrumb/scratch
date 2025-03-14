@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 clap = "4.5.31"
 id_tree = "1.8.0"
+indicatif = {version = "0.17.11", features = ["rayon"] }
 memmap2 = "0.9.5"
 rand = "0.9.0"
 rand_distr = "0.5.1"
@@ -43,6 +44,10 @@ path = "src/bin/build_ivf.rs"
 [[bin]]
 name = "build_kmt"
 path = "src/bin/build_kmt.rs"
+
+[[bin]]
+name = "build_slow_preprocessing"
+path = "src/bin/build_slow_preprocessing.rs"
 
 [[bin]]
 name = "kmt_parameter_exploration"
