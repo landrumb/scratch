@@ -8,8 +8,8 @@ pub fn recall<T: Eq>(output: &[T], groundtruth: &[T]) -> f64 {
     let mut matches = 0;
     let length = min(output.len(), groundtruth.len());
 
-    for i in 0..length {
-        if groundtruth[..length].contains(&output[i]) {
+    for neighbor in output.iter().take(length) {
+        if groundtruth[..length].contains(neighbor) {
             matches += 1;
         }
     }
