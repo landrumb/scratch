@@ -11,6 +11,8 @@ use crate::{
     graph::IndexT,
 };
 
+use super::VectorIndex;
+
 pub struct IVFIndex<'a> {
     pub k: usize,
     dataset: &'a VectorDataset<f32>,
@@ -144,15 +146,28 @@ impl<'a> IVFIndex<'a> {
     }
 
     /// queries the IVF index with a given query, returning the top k results
-    pub fn query(&self, query: &[f32], beam_width: usize, k: usize) -> Vec<(IndexT, f32)> {
+    pub fn query(&self, query: &[f32], n_probe: usize, k: usize) -> Vec<(IndexT, f32)> {
         let representative_dists = self.query_representatives(query);
         let mut results = Vec::new();
-        for (partition, _) in representative_dists.iter().take(beam_width) {
+        for (partition, _) in representative_dists.iter().take(n_probe) {
             let mut partition_results = self.query_partition(query, *partition as usize);
             results.append(&mut partition_results);
         }
         results.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
         results.truncate(k);
         results
+    }
+}
+
+impl VectorIndex<f32> for IVFIndex<'_> {
+    /// Does k-NN search on the IVF index
+    fn query(&self, query: &[f32], parameters: super::Parameters) -> Vec<IndexT> {
+        let k = parameters.get::<usize>("k");
+        let n_probe = parameters.get::<usize>("n_probe").unwrap_or(&10);
+
+        self.query(query, *n_probe, *k.unwrap())
+            .iter()
+            .map(|r| r.0)
+            .collect()
     }
 }
