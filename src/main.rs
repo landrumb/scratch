@@ -32,7 +32,7 @@ fn main() {
 
     let mut start = Instant::now();
 
-    let dataset: VectorDataset<f32> = read_fbin(&data_path);
+    let dataset: VectorDataset<f32> = read_fbin(data_path);
 
     let elapsed = start.elapsed();
     println!(
@@ -52,7 +52,7 @@ fn main() {
     );
 
     // why bother timing reading queries
-    let queries: VectorDataset<f32> = read_fbin(&Path::new(&default_query_file));
+    let queries: VectorDataset<f32> = read_fbin(Path::new(&default_query_file));
 
     start = Instant::now();
 
@@ -71,7 +71,7 @@ fn main() {
     );
 
     // load ground truth
-    let gt = GroundTruth::read(&Path::new(&default_gt_file));
+    let gt = GroundTruth::read(Path::new(&default_gt_file));
 
     // compute recall
     let graph_recall = (0..results.len())

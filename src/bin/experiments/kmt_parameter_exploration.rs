@@ -37,7 +37,7 @@ fn main() {
     let mut file = OpenOptions::new()
         .append(true)
         .create(true)
-        .open(&output_file)
+        .open(output_file)
         .expect("Failed to open output file");
     
     // If file did not exist, write header including construction parameters

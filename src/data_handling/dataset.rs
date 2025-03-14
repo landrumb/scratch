@@ -53,7 +53,7 @@ where
     }
 
     pub fn compare_euclidean(&self, i: usize, j: usize) -> f64 {
-        euclidean(&self.get(i), &self.get(j), self.dim)
+        euclidean(self.get(i), self.get(j), self.dim)
     }
 
     /// returns id, distance pairs for a subset of the dataset relative to a query
@@ -107,7 +107,7 @@ where
     ) -> VectorDataset<T> {
         let mut data = Vec::new();
         for i in subset {
-            data.extend_from_slice(&self.get(i));
+            data.extend_from_slice(self.get(i));
         }
         let new_n = data.len() / self.dim;
         VectorDataset::new(data.into_boxed_slice(), new_n, self.dim)

@@ -37,8 +37,8 @@ pub fn build_slow_preprocesssing(
                 .collect::<Vec<(IndexT, f32)>>();
             
             // Prune remainder of the dataset based on alpha
-            let new_neighbors = robust_prune_unbounded(point, candidates, alpha, dataset);
-            new_neighbors
+            
+            robust_prune_unbounded(point, candidates, alpha, dataset)
         })
         .collect();
 

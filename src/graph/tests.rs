@@ -63,7 +63,7 @@ mod tests {
 
         // Verify
         assert_eq!(loaded_graph.n, n);
-        assert_eq!(loaded_graph.r, r as usize);
+        assert_eq!(loaded_graph.r, { r });
         for i in 0..n {
             assert_eq!(loaded_graph.degree(i), 0);
         }

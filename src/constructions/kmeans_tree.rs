@@ -72,7 +72,7 @@ impl<'a> KMeansTree<'a> {
             (0..dataset.n as IndexT).collect(),
         ));
 
-        while queue.len() > 0 {
+        while !queue.is_empty() {
             let (parent_node, subset) = queue.pop_back().unwrap();
 
             // clustering the points of the subset
@@ -158,7 +158,7 @@ impl<'a> KMeansTree<'a> {
             (0..dataset.n as IndexT).collect(),
         ));
 
-        while queue.len() > 0 {
+        while !queue.is_empty() {
             let (parent_node, subset) = queue.pop_back().unwrap();
 
             // First, compute the centroids and get the multiple assignments for each point
@@ -254,7 +254,7 @@ impl<'a> KMeansTree<'a> {
 
             if child_node_ids.is_empty() {
                 // We've reached a leaf node
-                return current_node.data().clone();
+                return *current_node.data();
             }
 
             let child_node_data = child_node_ids

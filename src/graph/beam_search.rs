@@ -27,12 +27,7 @@ fn beam_insert<T>(
 }
 
 fn first_unvisited_element(beam: &Vec<BeamElement>) -> Option<usize> {
-    for i in 0..beam.len() {
-        if !beam[i].2 {
-            return Some(i);
-        }
-    }
-    None
+    (0..beam.len()).find(|&i| !beam[i].2)
 }
 
 /// This is a bare-bones beam search.

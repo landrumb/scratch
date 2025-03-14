@@ -36,7 +36,7 @@ fn word2vec_euclidean_group(c: &mut Criterion) {
     let dataset_path_string =
         String::from("data/word2vec-google-news-300_50000_lowercase/base.fbin");
     let dataset_path = std::path::Path::new(&dataset_path_string);
-    let dataset: dataset::VectorDataset<f32> = fbin::read_fbin(&dataset_path);
+    let dataset: dataset::VectorDataset<f32> = fbin::read_fbin(dataset_path);
 
     // let mut rng = rand::rng();
     let mut group = c.benchmark_group("word2vec euclidean");

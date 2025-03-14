@@ -30,7 +30,7 @@ pub fn brute_force(query: &[f32], points: &[f32]) -> Vec<(IndexT, f32)> {
         .map(|i| {
             (
                 i as IndexT,
-                euclidean(&query, &points[i * dim..(i + 1) * dim], dim)
+                euclidean(query, &points[i * dim..(i + 1) * dim], dim)
                     .to_f32()
                     .unwrap(),
             )

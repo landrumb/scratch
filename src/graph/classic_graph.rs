@@ -290,7 +290,7 @@ impl<'a> EdgeRange<'a> {
     }
 }
 
-impl<'a> std::ops::Index<usize> for EdgeRange<'a> {
+impl std::ops::Index<usize> for EdgeRange<'_> {
     type Output = IndexT;
 
     fn index(&self, index: usize) -> &Self::Output {
