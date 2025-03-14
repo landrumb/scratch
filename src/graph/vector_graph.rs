@@ -9,11 +9,15 @@ pub struct VectorGraph {
 }
 
 impl VectorGraph {
-    /// constructs a new VectorGraph with the given number of nodes
-    pub fn new(n: usize) -> VectorGraph {
+    /// constructs a new empty VectorGraph with the given number of nodes
+    pub fn empty(n: usize) -> VectorGraph {
         VectorGraph {
             neighborhoods: vec![Vec::new(); n],
         }
+    }
+
+    pub fn new(neighborhoods: Vec<Vec<IndexT>>) -> VectorGraph {
+        VectorGraph { neighborhoods }
     }
 
     /// returns the number of nodes in the graph
@@ -30,6 +34,11 @@ impl VectorGraph {
     /// sum of degrees of all nodes
     pub fn total_edges(&self) -> usize {
         self.neighborhoods.iter().map(|n| n.len()).sum()
+    }
+
+    /// maximum degree of the graph
+    pub fn max_degree(&self) -> usize {
+        self.neighborhoods.iter().map(|n| n.len()).max().unwrap_or(0)
     }
 }
 
