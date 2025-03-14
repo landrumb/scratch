@@ -1,7 +1,7 @@
 pub mod ivf;
 pub mod kmeans_tree;
 pub mod slow_preprocessing;
-pub mod vamana;
+pub mod neighbor_selection;
 
 mod index_trait;
 pub use index_trait::{Parameters, VectorIndex};

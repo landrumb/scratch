@@ -2,7 +2,7 @@
 
 use rayon::iter::IntoParallelIterator;
 
-use crate::constructions::vamana::robust_prune_unbounded;
+use crate::constructions::neighbor_selection::robust_prune_unbounded;
 use crate::data_handling::dataset::VectorDataset;
 use crate::graph::{IndexT, VectorGraph};
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
@@ -72,5 +72,7 @@ pub fn build_global_local_graph(
 
     VectorGraph::new(neighborhoods)
 }
+
+
 
 
