@@ -67,6 +67,20 @@ where
         results.into_boxed_slice()
     }
 
+    /// brute force but the subset is defined by an iterator
+    pub fn brute_force_iter(
+        &self,
+        query: &[T],
+        subset: impl Iterator<Item = usize>,
+    ) -> Box<[(usize, f32)]> {
+        let mut results: Vec<(usize, f32)> = subset
+            .map(|i| (i, self.compare(query, i) as f32))
+            .collect();
+
+        results.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+        results.into_boxed_slice()
+    }
+
     /// returns the index (within the arg slice) of the closest of a set of indices to a query
     pub fn closest(&self, query: &[T], candidates: &[usize]) -> usize {
         if candidates.is_empty() {
@@ -85,6 +99,18 @@ where
             })
             .map(|(idx, _)| idx)
             .unwrap_or(0)
+    }
+
+    pub fn subset_copy_iter(
+        &self,
+        subset: impl Iterator<Item = usize>,
+    ) -> VectorDataset<T> {
+        let mut data = Vec::new();
+        for i in subset {
+            data.extend_from_slice(&self.get(i));
+        }
+        let new_n = data.len() / self.dim;
+        VectorDataset::new(data.into_boxed_slice(), new_n, self.dim)
     }
 }
 
