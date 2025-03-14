@@ -4,7 +4,8 @@ use std::time::Instant;
 
 use rand_distr::num_traits::ToPrimitive;
 use rayon::prelude::*;
-use scratch::constructions::slow_preprocessing::build_slow_preprocesssing;
+use scratch::constructions::slow_preprocessing::{build_global_local_graph, build_slow_preprocesssing};
+use scratch::constructions::vamana::robust_prune_unbounded;
 use scratch::data_handling::dataset::VectorDataset;
 use scratch::data_handling::dataset_traits::Dataset;
 use scratch::data_handling::fbin::read_fbin;
@@ -44,7 +45,10 @@ fn main() {
 
     // build the graph
     start = Instant::now();
-    let graph = build_slow_preprocesssing(&dataset, 1.0);
+    // let graph = build_slow_preprocesssing(&dataset, 1.0);
+    let graph = build_global_local_graph(&dataset, |candidates, dataset| {
+        robust_prune_unbounded(candidates.to_vec(), 1.0, dataset)
+    });
     let elapsed = start.elapsed();
     println!(
         "built graph in {}.{:03} seconds",
