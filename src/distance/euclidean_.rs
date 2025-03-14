@@ -8,7 +8,7 @@ use std::ops::Sub;
 /// let b = [4.0, 5.0, 6.0];
 /// let distance = crate::scratch::distance::euclidean(&a, &b, 3);
 /// assert!((distance - f64::sqrt(27.0)).abs() < 1e-6);
-/// 
+///
 /// let c = [1.0, 0.0, 0.0, 0.0];
 /// let d = [0.0, 1.0, 0.0, 0.0];
 /// let distance2 = crate::scratch::distance::euclidean(&c, &d, 4);

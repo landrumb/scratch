@@ -132,13 +132,13 @@ pub fn kmeans(
 }
 
 /// Computes k-means clustering but allows each point to be assigned to the s nearest centroids
-/// 
+///
 /// This variant runs standard k-means to convergence first, then computes the top-s assignments
 /// for each point based on the final centroids.
-/// 
+///
 /// Returns:
 /// - The centroids as a flat vector
-/// - A vector of vectors where each inner vector contains the s (or fewer) closest centroids 
+/// - A vector of vectors where each inner vector contains the s (or fewer) closest centroids
 ///   for each point, sorted from closest to furthest
 pub fn kmeans_subset_with_spillover(
     dataset: &VectorDataset<f32>,
@@ -150,13 +150,13 @@ pub fn kmeans_subset_with_spillover(
 ) -> (Vec<f32>, Vec<Vec<usize>>) {
     // First run standard k-means to get centroids
     let (centroids, _) = kmeans_subset(dataset, k, max_iter, epsilon, indices);
-    
+
     // Then compute the s nearest centroids for each point
     let spillover_assignments: Vec<Vec<usize>> = indices
         .par_iter()
         .map(|&idx| {
             let point = dataset.get(idx as usize);
-            
+
             // Compute distances to all centroids
             let mut distances: Vec<(usize, f32)> = (0..k)
                 .map(|j| {
@@ -169,18 +169,19 @@ pub fn kmeans_subset_with_spillover(
                     (j, dist)
                 })
                 .collect();
-            
+
             // Sort by distance
             distances.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-            
+
             // Take the top s
-            distances.iter()
+            distances
+                .iter()
                 .take(spillover.min(k)) // Cannot take more than k centroids
                 .map(|&(idx, _)| idx)
                 .collect()
         })
         .collect();
-    
+
     (centroids, spillover_assignments)
 }
 

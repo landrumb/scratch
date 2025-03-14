@@ -38,7 +38,11 @@ impl VectorGraph {
 
     /// maximum degree of the graph
     pub fn max_degree(&self) -> usize {
-        self.neighborhoods.iter().map(|n| n.len()).max().unwrap_or(0)
+        self.neighborhoods
+            .iter()
+            .map(|n| n.len())
+            .max()
+            .unwrap_or(0)
     }
 }
 

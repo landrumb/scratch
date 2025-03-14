@@ -2,13 +2,13 @@
 
 pub mod beam_search;
 
-mod graph_traits;
 mod classic_graph;
+mod graph_traits;
 mod vector_graph;
 
 // Re-export all public items
-pub use graph_traits::*;
 pub use classic_graph::*;
+pub use graph_traits::*;
 pub use vector_graph::*;
 
 #[cfg(test)]

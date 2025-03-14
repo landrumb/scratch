@@ -24,9 +24,15 @@ fn main() {
         println!("  max_iterations: Maximum K-means iterations (default: 10)");
         println!("  epsilon: Convergence threshold (default: 0.01)");
         println!("  spillover: Number of nearest centroids to assign each point to (default: 0/1 = no spillover)");
-        println!("  beam_width: Number of paths to explore when querying (default: 0 = standard query)");
-        println!("\nHigher spillover values increase recall at the cost of index size and query time.");
-        println!("A non-zero beam_width enables beam search querying instead of standard querying.");
+        println!(
+            "  beam_width: Number of paths to explore when querying (default: 0 = standard query)"
+        );
+        println!(
+            "\nHigher spillover values increase recall at the cost of index size and query time."
+        );
+        println!(
+            "A non-zero beam_width enables beam search querying instead of standard querying."
+        );
         return;
     }
 
@@ -57,11 +63,11 @@ fn main() {
 
     let epsilon_arg = args().nth(7).unwrap_or("0.01".to_string());
     let epsilon: f64 = epsilon_arg.parse().unwrap_or(0.01);
-    
+
     // Add spillover parameter (default: 0 = no spillover)
     let spillover_arg = args().nth(8).unwrap_or("3".to_string());
     let spillover: usize = spillover_arg.parse().unwrap_or(0);
-    
+
     // Add beam search width parameter (default: 0 = use standard query)
     let beam_width_arg = args().nth(9).unwrap_or("100".to_string());
     let beam_width: usize = beam_width_arg.parse().unwrap_or(0);
@@ -108,19 +114,22 @@ fn main() {
 
     // Run queries - use beam search if beam_width > 0
     start = Instant::now();
-    
+
     let query_method = if beam_width > 0 {
         println!("Using beam search query with beam_width={}", beam_width);
         "beam search"
     } else {
         "standard"
     };
-    
+
     let kmt_results: Vec<Vec<u32>> = (0..queries.size())
         .into_par_iter()
         .map(|i| {
             if beam_width > 0 {
-                kmt.query_beam_search(queries.get(i), beam_width, 10).iter().map(|r| r.0).collect()
+                kmt.query_beam_search(queries.get(i), beam_width, 10)
+                    .iter()
+                    .map(|r| r.0)
+                    .collect()
             } else {
                 kmt.query(queries.get(i), 10).iter().map(|r| r.0).collect()
             }
