@@ -147,7 +147,7 @@ impl<'a> IVFIndex<'a> {
     pub fn query(&self, query: &[f32], beam_width: usize, k: usize) -> Vec<(IndexT, f32)> {
         let representative_dists = self.query_representatives(query);
         let mut results = Vec::new();
-        for i in 0..self.k {
+        for i in 0..beam_width {
             let partition = representative_dists[i].0 as usize;
             let mut partition_results = self.query_partition(query, partition);
             results.append(&mut partition_results);
