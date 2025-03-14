@@ -15,7 +15,7 @@ pub fn robust_prune_unbounded(point: &[f32], mut candidates: Vec<(IndexT, f32)>,
     while let Some((n, _)) = candidates.pop() {
         new_neighbors.push(n);
         candidates.retain(|(i, dist)| {
-            alpha * dataset.compare(point, *i as usize) as f32 <= *dist
+            alpha * dataset.compare_internal(n as usize, *i as usize) as f32 >= *dist
         });
     }
     
