@@ -128,7 +128,6 @@ fn main() {
                     orig_neighbors.len(),
                     new_neighbors.len()
                 );
-                edge_mismatch = true;
                 is_equal = false;
                 break;
             }
