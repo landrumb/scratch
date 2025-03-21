@@ -6,7 +6,7 @@ use rand_distr::num_traits::ToPrimitive;
 use rayon::prelude::*;
 use scratch::constructions::slow_preprocessing::{build_global_local_graph, build_slow_preprocesssing};
 use scratch::constructions::neighbor_selection::{naive_semi_greedy_prune, robust_prune_unbounded};
-use scratch::data_handling::dataset::VectorDataset;
+use scratch::data_handling::dataset::{DistanceMatrix, VectorDataset};
 use scratch::data_handling::dataset_traits::Dataset;
 use scratch::data_handling::fbin::read_fbin;
 use scratch::graph::beam_search;
@@ -35,7 +35,8 @@ fn main() {
 
     // Load dataset
     let mut start = Instant::now();
-    let dataset: VectorDataset<f32> = read_fbin(data_path);
+    // let dataset: VectorDataset<f32> = read_fbin(data_path);
+    let boxed_dataset: Box<VectorDataset<f32>> = Box::new(read_fbin(data_path));
     let elapsed = start.elapsed();
     println!(
         "read dataset in {}.{:03} seconds",
@@ -43,15 +44,18 @@ fn main() {
         elapsed.subsec_millis()
     );
 
+    // build distance matrix
+    let dataset = DistanceMatrix::new_with_progress_bar(boxed_dataset);
+
     // build the graph
     start = Instant::now();
-    // let graph = build_slow_preprocesssing(&dataset, 1.0);
+    let graph = build_slow_preprocesssing(&dataset, 1.0);
     // let graph = build_global_local_graph(&dataset, |candidates, dataset| {
     //     robust_prune_unbounded(candidates.to_vec(), 1.0, dataset)
     // });
-    let graph = build_global_local_graph(&dataset, |candidates, dataset| {
-        naive_semi_greedy_prune(candidates, dataset, 1.0)
-    });
+    // let graph = build_global_local_graph(&dm_dataset, |candidates, dataset| {
+    //     naive_semi_greedy_prune(candidates, dm_dataset, 1.0)
+    // });
     let elapsed = start.elapsed();
     println!(
         "built graph in {}.{:03} seconds",
@@ -60,7 +64,7 @@ fn main() {
     );
 
     println!("Total edges: {}", graph.total_edges());
-    println!("Average degree: {}", graph.total_edges() / dataset.n);
+    println!("Average degree: {}", graph.total_edges() / dataset.size());
     println!("Max degree: {}", graph.max_degree());
 
     // Load queries
