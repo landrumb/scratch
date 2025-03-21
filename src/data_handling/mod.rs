@@ -2,6 +2,8 @@ pub mod dataset;
 pub mod dataset_traits;
 pub mod fbin;
 
+mod distance_matrix;
+
 #[cfg(test)]
 mod tests {
     use super::dataset::VectorDataset;
@@ -20,7 +22,7 @@ mod tests {
         let query = vec![1.0, 0.0, 0.0];
         let subset = vec![0, 1, 2, 3];
 
-        let results = dataset.brute_force(&query, &subset);
+        let results = dataset.brute_force_boxed_subset(&query, &subset);
 
         // Vector 0 should be closest to query
         assert_eq!(results[0].0, 0);

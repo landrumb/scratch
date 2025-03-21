@@ -1,5 +1,7 @@
 //! definitions and implementations of datasets
 
+pub use super::distance_matrix::DistanceMatrix;
+
 use std::{ops::Sub, path::Path};
 
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
@@ -57,7 +59,7 @@ where
     }
 
     /// returns id, distance pairs for a subset of the dataset relative to a query
-    pub fn brute_force(&self, query: &[T], subset: &[usize]) -> Box<[(usize, f32)]> {
+    pub fn brute_force_boxed_subset(&self, query: &[T], subset: &[usize]) -> Box<[(usize, f32)]> {
         let mut results: Vec<(usize, f32)> = subset
             .par_iter()
             .map(|i| (*i, self.compare(query, *i) as f32))
@@ -68,7 +70,7 @@ where
     }
 
     /// brute force but the subset is defined by an iterator
-    pub fn brute_force_iter(
+    pub fn brute_force(
         &self,
         query: &[T],
         subset: impl Iterator<Item = usize>,
