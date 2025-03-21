@@ -13,7 +13,7 @@ use rayon::prelude::*;
 pub fn robust_prune_unbounded(
     mut candidates: Vec<(IndexT, f32)>,
     alpha: f32,
-    dataset: &VectorDataset<f32>,
+    dataset: &dyn Dataset<f32>,
 ) -> Vec<IndexT> {
     let mut new_neighbors: Vec<IndexT> = Vec::new();
 
@@ -35,7 +35,7 @@ fn materialize_alpha_set(
     neighbor: IndexT,
     candidates: &[(IndexT, f32)],
     alpha: f32,
-    dataset: &VectorDataset<f32>,
+    dataset: &dyn Dataset<f32>,
 ) -> Vec<IndexT> {
     let mut alpha_set: Vec<IndexT> = Vec::new();
 
@@ -53,7 +53,7 @@ fn materialize_alpha_set(
 /// does not update the alpha sets between iterations, but does not add a candidate if it has already been covered
 pub fn naive_semi_greedy_prune(
     candidates: &[(IndexT, f32)],
-    dataset: &VectorDataset<f32>,
+    dataset: &dyn Dataset<f32>,
     alpha: f32,
 ) -> Vec<IndexT> {
     let mut new_neighbors: Vec<IndexT> = Vec::new();
