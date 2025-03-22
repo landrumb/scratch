@@ -35,7 +35,7 @@ impl<T: Numeric> DistanceMatrix<T> {
     }
 
     pub fn new_with_progress_bar(dataset: Box<dyn Dataset<T>>) -> DistanceMatrix<T> {
-        use indicatif::{ProgressBar, ProgressStyle, ParallelProgressIterator, ProgressIterator};
+        use indicatif::{ProgressBar, ProgressStyle, ParallelProgressIterator};
 
         let n = dataset.size();
 

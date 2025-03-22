@@ -5,11 +5,11 @@ use std::time::Instant;
 use rand_distr::num_traits::ToPrimitive;
 use rayon::prelude::*;
 use scratch::constructions::slow_preprocessing::{build_global_local_graph, build_slow_preprocesssing};
-use scratch::constructions::neighbor_selection::{naive_semi_greedy_prune, robust_prune_unbounded};
+use scratch::constructions::neighbor_selection::{naive_semi_greedy_prune, robust_prune_unbounded, PairwiseDistancesHandler};
 use scratch::data_handling::dataset::{DistanceMatrix, VectorDataset};
 use scratch::data_handling::dataset_traits::Dataset;
 use scratch::data_handling::fbin::read_fbin;
-use scratch::graph::beam_search;
+use scratch::graph::{beam_search, IndexT};
 use scratch::util::ground_truth::GroundTruth;
 use scratch::util::recall::recall;
 
@@ -49,13 +49,28 @@ fn main() {
 
     // build the graph
     start = Instant::now();
-    let graph = build_slow_preprocesssing(&dataset, 1.0);
+    // let graph = build_slow_preprocesssing(&dataset, 1.0);
+
+
+    let nested_boxed_distances = (0..dataset.size())
+        .into_par_iter()
+        .map(|i| {
+            dataset.brute_force_internal(i)
+                .iter()
+                .map(|(j, dist)| (*j as IndexT, *dist))
+                .collect::<Box<[(IndexT, f32)]>>()
+        })
+        .collect::<Box<[Box<[(IndexT, f32)]>]>>();
+    let pairwise_distances = PairwiseDistancesHandler::new(nested_boxed_distances);
+
     // let graph = build_global_local_graph(&dataset, |candidates, dataset| {
     //     robust_prune_unbounded(candidates.to_vec(), 1.0, dataset)
     // });
-    // let graph = build_global_local_graph(&dm_dataset, |candidates, dataset| {
-    //     naive_semi_greedy_prune(candidates, dm_dataset, 1.0)
-    // });
+
+    let graph = build_global_local_graph(&dataset, |center, candidates| {
+        naive_semi_greedy_prune(center, candidates, &dataset, 1.0, &pairwise_distances)
+    });
+
     let elapsed = start.elapsed();
     println!(
         "built graph in {}.{:03} seconds",
