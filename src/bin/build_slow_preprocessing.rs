@@ -1,4 +1,6 @@
+use std::boxed;
 use std::env::args;
+use std::ops::Sub;
 use std::path::Path;
 use std::time::Instant;
 
@@ -6,12 +8,14 @@ use rand_distr::num_traits::ToPrimitive;
 use rayon::prelude::*;
 use scratch::constructions::slow_preprocessing::build_global_local_graph;
 use scratch::constructions::neighbor_selection::{naive_semi_greedy_prune, PairwiseDistancesHandler};
-use scratch::data_handling::dataset::{DistanceMatrix, VectorDataset};
+use scratch::data_handling::dataset::{DistanceMatrix, Subset, VectorDataset};
 use scratch::data_handling::dataset_traits::Dataset;
 use scratch::data_handling::fbin::read_fbin;
 use scratch::graph::{beam_search, IndexT};
 use scratch::util::ground_truth::GroundTruth;
 use scratch::util::recall::recall;
+
+static SUBSET_SIZE: Option<&'static str> = option_env!("SUBSET_SIZE");
 
 fn main() {
     let default_data_file = String::from("data/word2vec-google-news-300_50000_lowercase/base.fbin");
@@ -36,7 +40,18 @@ fn main() {
     // Load dataset
     let mut start = Instant::now();
     // let dataset: VectorDataset<f32> = read_fbin(data_path);
+    
     let boxed_dataset: Box<VectorDataset<f32>> = Box::new(read_fbin(data_path));
+    let mut subset_size: usize = boxed_dataset.size();
+    
+    if let Some(subset_size_arg) = SUBSET_SIZE {
+        subset_size = subset_size_arg.parse::<usize>().unwrap();
+    } 
+
+    println!("Using subset of size {}", subset_size);
+    let subset_indices = (0..subset_size).collect::<Vec<usize>>();
+    let subset = Subset::new(boxed_dataset, subset_indices);
+    
     let elapsed = start.elapsed();
     println!(
         "read dataset in {}.{:03} seconds",
@@ -45,17 +60,17 @@ fn main() {
     );
 
     // build distance matrix
-    let dataset = DistanceMatrix::new_with_progress_bar(boxed_dataset);
+    // let dataset = DistanceMatrix::new_with_progress_bar(dataset);
 
     // build the graph
     start = Instant::now();
     // let graph = build_slow_preprocesssing(&dataset, 1.0);
 
 
-    let nested_boxed_distances = (0..dataset.size())
+    let nested_boxed_distances = (0..subset.size())
         .into_par_iter()
         .map(|i| {
-            dataset.brute_force_internal(i)
+            subset.brute_force_internal(i)
                 .iter()
                 .map(|(j, dist)| (*j as IndexT, *dist))
                 .collect::<Box<[(IndexT, f32)]>>()
@@ -67,8 +82,8 @@ fn main() {
     //     robust_prune_unbounded(candidates.to_vec(), 1.0, dataset)
     // });
 
-    let graph = build_global_local_graph(&dataset, |center, candidates| {
-        naive_semi_greedy_prune(center, candidates, &dataset, 1.0, &pairwise_distances)
+    let graph = build_global_local_graph(&subset, |center, candidates| {
+        naive_semi_greedy_prune(center, candidates, &subset, 1.0, &pairwise_distances)
     });
 
     let elapsed = start.elapsed();
@@ -79,7 +94,7 @@ fn main() {
     );
 
     println!("Total edges: {}", graph.total_edges());
-    println!("Average degree: {}", graph.total_edges() / dataset.size());
+    println!("Average degree: {}", graph.total_edges() / subset.size());
     println!("Max degree: {}", graph.max_degree());
 
     // Load queries
@@ -89,7 +104,7 @@ fn main() {
     start = Instant::now();
     let results: Vec<Vec<u32>> = (0..queries.size())
         .into_par_iter()
-        .map(|i| beam_search(queries.get(i), &graph, &dataset, 0, 10))
+        .map(|i| beam_search(queries.get(i), &graph, &subset, 0, 10))
         .collect();
 
     let elapsed = start.elapsed();
