@@ -101,7 +101,6 @@ fn materialize_alpha_sets(
 
     alpha_sets.
         into_iter()
-        .map(|(i, set)| (i, set))
         .collect::<Vec<(IndexT, HashSet<IndexT>)>>()
 }
 

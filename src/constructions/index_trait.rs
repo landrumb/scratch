@@ -9,6 +9,12 @@ pub struct Parameters {
     values: HashMap<String, Box<dyn Any>>,
 }
 
+impl Default for Parameters {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Parameters {
     pub fn new() -> Self {
         Parameters {
