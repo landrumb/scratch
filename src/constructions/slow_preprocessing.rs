@@ -3,13 +3,11 @@
 use rayon::iter::IntoParallelIterator;
 
 use crate::constructions::neighbor_selection::robust_prune_unbounded;
-use crate::data_handling::dataset::VectorDataset;
 use crate::data_handling::dataset_traits::Dataset;
 use crate::graph::{IndexT, VectorGraph};
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 
-use super::neighbor_selection::PairwiseDistancesHandler;
 
 /// constructs the slow preprocessing version of a vamana graph
 pub fn build_slow_preprocesssing(dataset: &dyn Dataset<f32>, alpha: f32) -> VectorGraph {

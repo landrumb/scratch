@@ -4,8 +4,8 @@ use std::time::Instant;
 
 use rand_distr::num_traits::ToPrimitive;
 use rayon::prelude::*;
-use scratch::constructions::slow_preprocessing::{build_global_local_graph, build_slow_preprocesssing};
-use scratch::constructions::neighbor_selection::{naive_semi_greedy_prune, robust_prune_unbounded, PairwiseDistancesHandler};
+use scratch::constructions::slow_preprocessing::build_global_local_graph;
+use scratch::constructions::neighbor_selection::{naive_semi_greedy_prune, PairwiseDistancesHandler};
 use scratch::data_handling::dataset::{DistanceMatrix, VectorDataset};
 use scratch::data_handling::dataset_traits::Dataset;
 use scratch::data_handling::fbin::read_fbin;

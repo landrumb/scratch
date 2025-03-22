@@ -1,13 +1,13 @@
 //! Vamana graph construction
 
-use std::{collections::{HashMap, HashSet}, sync::Arc};
+use std::collections::{HashMap, HashSet};
 
 use crate::{
-    data_handling::{dataset::VectorDataset, dataset_traits::Dataset},
+    data_handling::dataset_traits::Dataset,
     graph::IndexT,
 };
 
-use rayon::{prelude::*, result};
+use rayon::prelude::*;
 
 /// robust prune without a degree bound
 pub fn robust_prune_unbounded(
