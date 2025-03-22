@@ -1,6 +1,7 @@
 //! definitions and implementations of datasets
 
 pub use super::distance_matrix::DistanceMatrix;
+pub use super::subset::Subset;
 
 use std::{ops::Sub, path::Path};
 

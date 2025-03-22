@@ -3,6 +3,7 @@ pub mod dataset_traits;
 pub mod fbin;
 
 mod distance_matrix;
+mod subset;
 
 #[cfg(test)]
 mod tests {
