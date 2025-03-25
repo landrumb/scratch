@@ -23,6 +23,7 @@ impl<T: Numeric> Dataset<T> for VectorDataset<T> {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct VectorDataset<T: Numeric> {
     data: Box<[T]>,
     pub n: usize,

@@ -30,6 +30,6 @@ echo "Building extension module with maturin..."
 maturin develop --release --features python
 
 echo "Python bindings built successfully!"
-echo "You can now import the module with: from scratch import PyVectorDataset"
+echo "You can now import the module with: import scratch"
 echo
 echo "To test the bindings, run: python test_vector_dataset.py"

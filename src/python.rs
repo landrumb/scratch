@@ -5,7 +5,12 @@ use pyo3::prelude::*;
 use numpy::{PyArray1, PyReadonlyArray2, PyReadonlyArray1};
 use crate::data_handling::dataset::VectorDataset;
 use crate::data_handling::dataset_traits::Dataset;
-use crate::graph::{VectorGraph, Graph, MutableGraph, IndexT};
+use crate::graph::{VectorGraph, MutableGraph, IndexT};
+use crate::data_handling::dataset::Subset;
+use crate::constructions::slow_preprocessing::build_global_local_graph;
+use crate::constructions::neighbor_selection::{naive_semi_greedy_prune, PairwiseDistancesHandler};
+use rayon::iter::IntoParallelIterator;
+use rayon::prelude::*;
 
 #[pyclass]
 pub struct PyVectorDataset {
@@ -220,10 +225,67 @@ impl PyVectorGraph {
     }
 }
 
+#[pyclass]
+pub struct PySubset {
+    subset: Subset<f32>,
+}
+
+#[pymethods]
+impl PySubset {
+    #[new]
+    fn new(dataset: &PyVectorDataset, indices: Vec<usize>) -> Self {
+        // Create a new VectorDataset to pass to Subset
+        let new_dataset = Box::new(dataset.dataset.clone());
+        
+        PySubset {
+            subset: Subset::new(new_dataset, indices),
+        }
+    }
+
+    #[getter]
+    fn size(&self) -> usize {
+        self.subset.size()
+    }
+    
+    fn get_vector(&self, idx: usize, py: Python<'_>) -> PyResult<PyObject> {
+        if idx >= self.subset.size() {
+            return Err(PyErr::new::<pyo3::exceptions::PyIndexError, _>(
+                format!("Index {} out of bounds for subset with {} elements", idx, self.subset.size())
+            ));
+        }
+        
+        let vector = self.subset.get(idx);
+        Ok(PyArray1::from_slice(py, vector).to_object(py))
+    }
+    
+    fn build_global_local_graph(&self, alpha: f32) -> PyResult<PyVectorGraph> {
+        // Calculate pairwise distances
+        let nested_boxed_distances = (0..self.subset.size())
+            .into_par_iter()
+            .map(|i| {
+                self.subset.brute_force_internal(i)
+                    .iter()
+                    .map(|(j, dist)| (*j as IndexT, *dist))
+                    .collect::<Box<[(IndexT, f32)]>>()
+            })
+            .collect::<Box<[Box<[(IndexT, f32)]>]>>();
+        
+        let pairwise_distances = PairwiseDistancesHandler::new(nested_boxed_distances);
+        
+        // Build the graph
+        let graph = build_global_local_graph(&self.subset, |center, candidates| {
+            naive_semi_greedy_prune(center, candidates, &self.subset, alpha, &pairwise_distances)
+        });
+        
+        Ok(PyVectorGraph { graph })
+    }
+}
+
 /// Python module for scratch library
 #[pymodule]
 pub fn scratch(_py: Python<'_>, m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PyVectorDataset>()?;
     m.add_class::<PyVectorGraph>()?;
+    m.add_class::<PySubset>()?;
     Ok(())
 }
