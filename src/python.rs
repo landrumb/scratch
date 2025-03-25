@@ -5,6 +5,7 @@ use pyo3::prelude::*;
 use numpy::{PyArray1, PyReadonlyArray2, PyReadonlyArray1};
 use crate::data_handling::dataset::VectorDataset;
 use crate::data_handling::dataset_traits::Dataset;
+use crate::graph::{VectorGraph, Graph, MutableGraph, IndexT};
 
 #[pyclass]
 pub struct PyVectorDataset {
@@ -151,9 +152,78 @@ impl PyVectorDataset {
     }
 }
 
+#[pyclass]
+pub struct PyVectorGraph {
+    graph: VectorGraph,
+}
+
+#[pymethods]
+impl PyVectorGraph {
+    #[new]
+    fn new(neighborhoods: Vec<Vec<u32>>) -> Self {
+        PyVectorGraph {
+            graph: VectorGraph::new(neighborhoods),
+        }
+    }
+
+    #[staticmethod]
+    fn empty(n: usize) -> Self {
+        PyVectorGraph {
+            graph: VectorGraph::empty(n),
+        }
+    }
+
+    #[getter]
+    fn n(&self) -> usize {
+        self.graph.n()
+    }
+
+    fn get_neighborhood(&self, i: u32, py: Python<'_>) -> PyResult<PyObject> {
+        if i >= self.graph.n() as u32 {
+            return Err(PyErr::new::<pyo3::exceptions::PyIndexError, _>(
+                format!("Index {} out of bounds for graph with {} nodes", i, self.graph.n())
+            ));
+        }
+        
+        let neighbors = self.graph.get_neighborhood(i);
+        Ok(PyArray1::from_slice(py, neighbors).to_object(py))
+    }
+
+    fn total_edges(&self) -> usize {
+        self.graph.total_edges()
+    }
+
+    fn max_degree(&self) -> usize {
+        self.graph.max_degree()
+    }
+    
+    fn add_neighbor(&mut self, from: u32, to: u32) -> PyResult<()> {
+        if from >= self.graph.n() as u32 || to >= self.graph.n() as u32 {
+            return Err(PyErr::new::<pyo3::exceptions::PyIndexError, _>(
+                format!("Index out of bounds for graph with {} nodes", self.graph.n())
+            ));
+        }
+        
+        self.graph.add_neighbor(from, to);
+        Ok(())
+    }
+
+    fn set_neighborhood(&mut self, i: u32, neighborhood: Vec<u32>) -> PyResult<()> {
+        if i >= self.graph.n() as u32 {
+            return Err(PyErr::new::<pyo3::exceptions::PyIndexError, _>(
+                format!("Index {} out of bounds for graph with {} nodes", i, self.graph.n())
+            ));
+        }
+        
+        self.graph.set_neighborhood(i, &neighborhood);
+        Ok(())
+    }
+}
+
 /// Python module for scratch library
 #[pymodule]
 pub fn scratch(_py: Python<'_>, m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PyVectorDataset>()?;
+    m.add_class::<PyVectorGraph>()?;
     Ok(())
 }
