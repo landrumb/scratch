@@ -53,22 +53,23 @@ impl PairwiseDistancesHandler {
 
     /// returns a box with the ids of the candidates that are within distance d of i
     pub fn closer_than(&self, i: IndexT, d: f32) -> Box<[IndexT]> {
+        // to debug we'll just walk up the id_distance_pairs
         let mut result = Vec::new();
-        
-        let last_index_covered = self.id_distance_pairs[i as usize]
-            .binary_search_by(|x| {
-                if x.1 < d {
-                    std::cmp::Ordering::Less
-                } else {
-                    std::cmp::Ordering::Greater
-                }
-            })
-            .unwrap_or_else(|_| self.id_distance_pairs[i as usize].len());
 
-        for j in 0..last_index_covered {
-            result.push(self.id_distance_pairs[i as usize][j].0);
+        for (j, distance) in self.id_distance_pairs[i as usize].iter() {
+            if *distance < d {
+                result.push(*j);
+            } else {
+                break; // Since the list is sorted, we can stop early
+            }
         }
+
         result.into_boxed_slice()
+    }
+
+    pub fn nearest(&self, i: IndexT) -> (IndexT, f32) {
+        // to debug we'll just walk up the id_distance_pairs
+        self.id_distance_pairs[i as usize][1].clone()
     }
 }
 
@@ -76,7 +77,7 @@ impl PairwiseDistancesHandler {
 /// 
 /// In the current implementation, this requires materializing the sorted distance matrix.
 /// might be worth making a version of this where the candidates and universe are distinct
-fn materialize_alpha_sets(
+pub fn materialize_alpha_sets(
     center: IndexT,
     candidates: &[IndexT],
     alpha: f32,
@@ -99,6 +100,15 @@ fn materialize_alpha_sets(
         }
     }
 
+    // // print indices of every point with alpha set of size candidates.len() - 1
+    // let full_sets: Vec<IndexT> = alpha_sets.clone()
+    //     .into_iter()
+    //     .filter(|(_, covered_set)| covered_set.len() == 999)
+    //     .map(|x| x.0)
+    //     .collect();
+
+    // println!("Full alpha sets: {:?}", full_sets.len());
+
     alpha_sets.
         into_iter()
         .collect::<Vec<(IndexT, HashSet<IndexT>)>>()
@@ -107,8 +117,6 @@ fn materialize_alpha_sets(
 unsafe impl Sync for PairwiseDistancesHandler {}
 
 /// greedily approximates the set cover instance
-/// 
-/// does not update the alpha sets between iterations, but does not add a candidate if it has already been covered
 pub fn naive_semi_greedy_prune(
     center: IndexT,
     candidates: &[IndexT],
@@ -119,6 +127,17 @@ pub fn naive_semi_greedy_prune(
     let mut new_neighbors: Vec<IndexT> = Vec::new();
 
     let mut alpha_sets = materialize_alpha_sets(center, candidates, alpha, dataset, pairwise_distances);
+
+    // add the nearest neighbor first
+    let nearest = pairwise_distances.nearest(center);
+
+    new_neighbors.push(nearest.0);
+    alpha_sets.retain(|(i, _)| *i != nearest.0);
+
+    // remove already pruned points from candidate lists
+    for set in alpha_sets.iter_mut() {
+        set.1.retain(|j| *j != nearest.0);
+    }
 
     // Sort alpha sets by size ascending
     alpha_sets.sort_by(|a, b| a.1.len().partial_cmp(&b.1.len()).unwrap());
@@ -131,6 +150,14 @@ pub fn naive_semi_greedy_prune(
         alpha_sets.retain(|(j, _)| {
             !covered_set.contains(j)
         });
+
+        // remove already pruned points from candidate lists
+        for set in alpha_sets.iter_mut() {
+            set.1.retain(|j| !covered_set.contains(j));
+        }
+
+        // sort the alpha sets by size ascending again
+        alpha_sets.sort_by(|a, b| a.1.len().partial_cmp(&b.1.len()).unwrap());
     }
 
     new_neighbors

@@ -11,8 +11,8 @@ use scratch::constructions::neighbor_selection::{naive_semi_greedy_prune, Pairwi
 use scratch::data_handling::dataset::{DistanceMatrix, Subset, VectorDataset};
 use scratch::data_handling::dataset_traits::Dataset;
 use scratch::data_handling::fbin::read_fbin;
-use scratch::graph::{beam_search, IndexT};
-use scratch::util::ground_truth::GroundTruth;
+use scratch::graph::{beam_search, Graph, IndexT};
+use scratch::util::ground_truth::{compute_ground_truth, GroundTruth};
 use scratch::util::recall::recall;
 
 static SUBSET_SIZE: Option<&'static str> = option_env!("SUBSET_SIZE");
@@ -83,7 +83,7 @@ fn main() {
     // });
 
     let graph = build_global_local_graph(&subset, |center, candidates| {
-        naive_semi_greedy_prune(center, candidates, &subset, 1.0, &pairwise_distances)
+        naive_semi_greedy_prune(center, candidates, &subset, 1.01, &pairwise_distances)
     });
 
     let elapsed = start.elapsed();
@@ -99,12 +99,14 @@ fn main() {
 
     // Load queries
     let queries: VectorDataset<f32> = read_fbin(query_path);
+    
 
     // Run queries
     start = Instant::now();
     let results: Vec<Vec<u32>> = (0..queries.size())
+    // let results: Vec<Vec<u32>> = (0..subset_size)
         .into_par_iter()
-        .map(|i| beam_search(queries.get(i), &graph, &subset, 0, 10))
+        .map(|i| beam_search(queries.get(i), &graph, &subset, 0, 100))
         .collect();
 
     let elapsed = start.elapsed();
@@ -116,11 +118,26 @@ fn main() {
         queries.size().to_f64().unwrap() / elapsed.as_secs_f64()
     );
 
-    // Load ground truth and compute recall
-    let gt = GroundTruth::read(gt_path);
+    // print the neighborhoods of the first 10 points in the dataset
+    for i in 0..10 {
+        println!("neighbors of {}: {:?}", i, graph.neighbors(i));
+    }
+
+    // what fraction of points have 20 as a neighbor?
+    let twenty_neighbors = (0..subset_size).filter(|i| graph.get_neighborhood(*i as IndexT).contains(&20)).count();
+    let fraction_twenty_neighbors = twenty_neighbors as f64 / subset.size() as f64;
+    println!("Fraction of points with 20 as a neighbor: {:.5}", fraction_twenty_neighbors);
+
+
+    // // Load ground truth and compute recall
+    // let gt = GroundTruth::read(gt_path);
+
+    // compute gt over the subset
+    let gt = compute_ground_truth(&queries, &subset, 1).unwrap();
+
     let graph_recall = (0..results.len())
         .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
         .sum::<f64>()
-        / queries.size().to_f64().unwrap();
+        / results.len().to_f64().unwrap();
     println!("recall: {:.5}", graph_recall);
 }
