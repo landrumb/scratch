@@ -76,7 +76,7 @@ for idx, center_idx in enumerate(center_indices):
 plt.title(f'Graph Neighborhoods (alpha={alpha})')
 plt.legend()
 plt.tight_layout()
-plt.savefig('graph_visualization.png')
+plt.savefig('outputs/graph_visualization.png')
 print("Visualization saved to 'graph_visualization.png'")
 
 # Create another visualization showing all graph edges
@@ -94,14 +94,14 @@ for i in range(graph.n):
     for j in neighbors:
         plt.plot([subset_points[i][0], subset_points[j][0]], 
                  [subset_points[i][1], subset_points[j][1]], 
-                 color='darkgray', alpha=0.2, linewidth=0.5)
+                 color='darkgray', alpha=0.7, linewidth=0.5)
         edge_count += 1
         
 print(f"Drew {edge_count} edges")
 
 plt.title(f'Complete Graph Visualization (alpha={alpha})')
 plt.tight_layout()
-plt.savefig('complete_graph_visualization.png')
+plt.savefig('outputs/complete_graph_visualization.png')
 print("Complete visualization saved to 'complete_graph_visualization.png'")
 
 # Create a visualization showing points within alpha-distance of neighbors
@@ -180,5 +180,5 @@ for i, neighbor_idx in enumerate(neighbors):
 plt.title(f'Alpha Coverage Visualization (alpha={alpha})')
 plt.legend()
 plt.tight_layout()
-plt.savefig('alpha_coverage_visualization.png')
+plt.savefig('outputs/alpha_coverage_visualization.png')
 print("Alpha coverage visualization saved to 'alpha_coverage_visualization.png'")
