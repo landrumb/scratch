@@ -2,7 +2,6 @@
 
 use super::dataset_traits::{Dataset, Numeric};
 
-use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
 
 pub struct DistanceMatrix<T> {
