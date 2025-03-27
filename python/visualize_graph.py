@@ -12,7 +12,7 @@ import random
 np.random.seed(42)
 
 # Generate random 2D points
-n_points = 1000
+n_points = 100
 dim = 2
 points = np.random.rand(n_points, dim).astype(np.float32)
 
@@ -20,16 +20,11 @@ points = np.random.rand(n_points, dim).astype(np.float32)
 print(f"Creating VectorDataset with {n_points} points of dimension {dim}...")
 dataset = PyVectorDataset(points)
 
-# Create a subset with a smaller number of points for visualization
-subset_size = 100
-subset_indices = random.sample(range(n_points), subset_size)
-subset = PySubset(dataset, subset_indices)
-print(f"Created subset with {subset.size} points")
-
 # Build the graph using the build_global_local_graph method with alpha=1.01
 print("Building graph...")
 alpha = 1.01
-graph = subset.build_global_local_graph(alpha)
+
+graph = dataset.build_global_local_graph(alpha)
 
 print(f"Graph built with {graph.n} nodes")
 print(f"Total edges: {graph.total_edges()}")
@@ -37,7 +32,7 @@ print(f"Average degree: {graph.total_edges() / graph.n:.2f}")
 print(f"Max degree: {graph.max_degree()}")
 
 # Get the positions of the subset points for visualization
-subset_points = np.array([subset.get_vector(i) for i in range(subset.size)])
+subset_points = np.array([dataset.get_vector(i) for i in range(dataset.size())])
 
 # Visualize the graph
 plt.figure(figsize=(10, 8))
@@ -47,7 +42,7 @@ plt.scatter(subset_points[:, 0], subset_points[:, 1],
             c='lightgray', alpha=0.5, s=30, edgecolor='k', linewidth=0.5)
 
 # Choose some center nodes to highlight
-center_indices = random.sample(range(subset.size), 5)
+center_indices = random.sample(range(dataset.size()), 5)
 center_colors = ['red', 'blue', 'green', 'purple', 'orange']
 
 # For each center, draw its neighborhood
@@ -76,7 +71,7 @@ for idx, center_idx in enumerate(center_indices):
 plt.title(f'Graph Neighborhoods (alpha={alpha})')
 plt.legend()
 plt.tight_layout()
-plt.savefig('outputs/graph_visualization.png')
+plt.savefig('../outputs/plots/graph_visualization.png')
 print("Visualization saved to 'graph_visualization.png'")
 
 # Create another visualization showing all graph edges
@@ -101,7 +96,7 @@ print(f"Drew {edge_count} edges")
 
 plt.title(f'Complete Graph Visualization (alpha={alpha})')
 plt.tight_layout()
-plt.savefig('outputs/complete_graph_visualization.png')
+plt.savefig('../outputs/plots/complete_graph_visualization.png')
 print("Complete visualization saved to 'complete_graph_visualization.png'")
 
 # Create a visualization showing points within alpha-distance of neighbors
@@ -180,5 +175,5 @@ for i, neighbor_idx in enumerate(neighbors):
 plt.title(f'Alpha Coverage Visualization (alpha={alpha})')
 plt.legend()
 plt.tight_layout()
-plt.savefig('outputs/alpha_coverage_visualization.png')
+plt.savefig('../outputs/plots/alpha_coverage_visualization.png')
 print("Alpha coverage visualization saved to 'alpha_coverage_visualization.png'")
