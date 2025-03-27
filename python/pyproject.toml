@@ -19,3 +19,4 @@ dependencies = [
 features = ["python"]
 module-name = "scratch"
 bindings = "pyo3"
+manifest-path = "../Cargo.toml"
