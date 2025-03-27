@@ -11,7 +11,7 @@ use scratch::constructions::neighbor_selection::{naive_semi_greedy_prune, Pairwi
 use scratch::data_handling::dataset::{DistanceMatrix, Subset, VectorDataset};
 use scratch::data_handling::dataset_traits::Dataset;
 use scratch::data_handling::fbin::read_fbin;
-use scratch::graph::{beam_search, Graph, IndexT};
+use scratch::graph::{beam_search, ClassicGraph, Graph, IndexT};
 use scratch::util::ground_truth::{compute_ground_truth, GroundTruth};
 use scratch::util::recall::recall;
 
@@ -83,7 +83,7 @@ fn main() {
     // });
 
     let graph = build_global_local_graph(&subset, |center, candidates| {
-        naive_semi_greedy_prune(center, candidates, &subset, 1.01, &pairwise_distances)
+        naive_semi_greedy_prune(center, candidates, &subset, 1.0, &pairwise_distances)
     });
 
     let elapsed = start.elapsed();
@@ -140,4 +140,9 @@ fn main() {
         .sum::<f64>()
         / results.len().to_f64().unwrap();
     println!("recall: {:.5}", graph_recall);
+
+    // write the graph to disk
+    let classic_graph = ClassicGraph::from(&graph);
+    classic_graph.save(data_path.parent().unwrap().join("outputs").join("greedy").to_str().unwrap()).unwrap();
+    println!("saved graph to disk");
 }
