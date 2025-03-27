@@ -2,7 +2,7 @@
 
 use crate::graph::IndexT;
 
-use super::{Graph, MutableGraph};
+use super::{ClassicGraph, Graph, MutableGraph};
 
 pub struct VectorGraph {
     neighborhoods: Vec<Vec<IndexT>>,
@@ -61,5 +61,20 @@ impl MutableGraph for VectorGraph {
     fn set_neighborhood(&mut self, i: IndexT, neighborhood: &[IndexT]) {
         assert!(i < self.n() as IndexT);
         self.neighborhoods[i as usize] = neighborhood.to_vec();
+    }
+}
+
+impl From<&VectorGraph> for ClassicGraph {
+    fn from(graph: &VectorGraph) -> ClassicGraph {
+        let n = graph.n() as IndexT;
+        let r = graph.max_degree();
+
+        let mut output_graph = ClassicGraph::new(n, r);
+
+        for i in 0..n {
+            let neighborhood = graph.get_neighborhood(i);
+            output_graph.set_neighborhood(i, neighborhood);
+        }
+        output_graph
     }
 }

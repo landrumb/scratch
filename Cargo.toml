@@ -33,8 +33,8 @@ name = "graph_roundtrip"
 path = "src/bin/graph_roundtrip.rs"
 
 [[bin]]
-name = "compute_ground_truth"
-path = "src/bin/compute_ground_truth.rs"
+name = "compute_groundtruth"
+path = "src/bin/compute_groundtruth.rs"
 
 [[bin]]
 name = "load_graph"
