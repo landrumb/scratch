@@ -155,6 +155,28 @@ impl PyVectorDataset {
         let results = Dataset::brute_force_subset_internal(&self.dataset, q, &subset);
         Ok(results.into_vec())
     }
+
+    fn build_global_local_graph(&self, alpha: f32) -> PyResult<PyVectorGraph> {
+        // Calculate pairwise distances
+        let nested_boxed_distances = (0..self.dataset.size())
+            .into_par_iter()
+            .map(|i| {
+                self.dataset.brute_force_internal(i)
+                    .iter()
+                    .map(|(j, dist)| (*j as IndexT, *dist))
+                    .collect::<Box<[(IndexT, f32)]>>()
+            })
+            .collect::<Box<[Box<[(IndexT, f32)]>]>>();
+        
+        let pairwise_distances = PairwiseDistancesHandler::new(nested_boxed_distances);
+        
+        // Build the graph
+        let graph = build_global_local_graph(&self.dataset, |center, candidates| {
+            naive_semi_greedy_prune(center, candidates, &self.dataset, alpha, &pairwise_distances)
+        });
+        
+        Ok(PyVectorGraph { graph })
+    }
 }
 
 #[pyclass]
