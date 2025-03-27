@@ -113,7 +113,7 @@ plt.scatter(subset_points[:, 0], subset_points[:, 1],
 
 # Draw center point
 plt.scatter(center[0], center[1], color='red', s=100, edgecolor='k',
-            linewidth=1.5, label=f'Center {center_idx}')
+            linewidth=1.5)
 
 # For each neighbor, draw points that are alpha times closer to the neighbor than to the center
 for i, neighbor_idx in enumerate(neighbors):
@@ -128,8 +128,8 @@ for i, neighbor_idx in enumerate(neighbors):
     alpha_close_points = subset_points[alpha_close_mask]
     
     # Skip if no points are found to avoid empty plot errors
-    if len(alpha_close_points) == 0:
-        continue
+    # if len(alpha_close_points) == 0:
+    #     continue
     
     # Get a unique color for this neighbor
     color = plt.cm.tab10(i % 10)
@@ -144,36 +144,33 @@ for i, neighbor_idx in enumerate(neighbors):
     
     # Draw neighbor
     plt.scatter(neighbor[0], neighbor[1], color=color, s=80, edgecolor='black',
-                linewidth=1.0, label=f'Neighbor {neighbor_idx}')
+                linewidth=1.0, label=f'Neighbor {i + 1}')
     
     # Draw accurate boundary of alpha region using contour plot
     # The boundary is where dist_to_neighbor = dist_to_center / alpha
-    if i < 3:  # Only draw for first few neighbors to avoid clutter
-        # Create a grid for contour plot
-        x_min, x_max = np.min(subset_points[:, 0]) - 0.1, np.max(subset_points[:, 0]) + 0.1
-        y_min, y_max = np.min(subset_points[:, 1]) - 0.1, np.max(subset_points[:, 1]) + 0.1
-        grid_size = 100
-        xs = np.linspace(x_min, x_max, grid_size)
-        ys = np.linspace(y_min, y_max, grid_size)
-        X, Y = np.meshgrid(xs, ys)
-        
-        # Calculate the contour function: dist_to_neighbor - dist_to_center/alpha
-        grid_points = np.vstack([X.ravel(), Y.ravel()]).T
-        dist_to_center_grid = np.sqrt(np.sum((grid_points - center)**2, axis=1)).reshape(X.shape)
-        dist_to_neighbor_grid = np.sqrt(np.sum((grid_points - neighbor)**2, axis=1)).reshape(X.shape)
-        
-        # The boundary is where this function equals zero
-        Z = dist_to_neighbor_grid - dist_to_center_grid / alpha
-        
-        # Plot the contour at level 0
-        contour = plt.contour(X, Y, Z, levels=[0], colors=[color], linestyles='dashed', 
-                    linewidths=1.5)
-        # Add a custom label in the legend
-        plt.plot([], [], color=color, linestyle='dashed', linewidth=1.5, 
-                label=f'Alpha boundary for {neighbor_idx}')
+    
+    # Create a grid for contour plot
+    x_min, x_max = np.min(subset_points[:, 0]) - 0.1, np.max(subset_points[:, 0]) + 0.1
+    y_min, y_max = np.min(subset_points[:, 1]) - 0.1, np.max(subset_points[:, 1]) + 0.1
+    grid_size = 100
+    xs = np.linspace(x_min, x_max, grid_size)
+    ys = np.linspace(y_min, y_max, grid_size)
+    X, Y = np.meshgrid(xs, ys)
+    
+    # Calculate the contour function: dist_to_neighbor - dist_to_center/alpha
+    grid_points = np.vstack([X.ravel(), Y.ravel()]).T
+    dist_to_center_grid = np.sqrt(np.sum((grid_points - center)**2, axis=1)).reshape(X.shape)
+    dist_to_neighbor_grid = np.sqrt(np.sum((grid_points - neighbor)**2, axis=1)).reshape(X.shape)
+    
+    # The boundary is where this function equals zero
+    Z = dist_to_neighbor_grid - dist_to_center_grid / alpha
+    
+    # Plot the contour at level 0
+    contour = plt.contour(X, Y, Z, levels=[0], colors=[color], linestyles='dashed', 
+                linewidths=1.5)
 
 plt.title(f'Alpha Coverage Visualization (alpha={alpha})')
 plt.legend()
 plt.tight_layout()
-plt.savefig('../outputs/plots/alpha_coverage_visualization.png')
+plt.savefig('../outputs/plots/alpha_coverage_visualization.svg')
 print("Alpha coverage visualization saved to 'alpha_coverage_visualization.png'")
