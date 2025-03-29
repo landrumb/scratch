@@ -7,8 +7,6 @@ use crate::{
     graph::IndexT,
 };
 
-use rayon::prelude::*;
-
 /// robust prune without a degree bound
 pub fn robust_prune_unbounded(
     mut candidates: Vec<(IndexT, f32)>,
@@ -73,6 +71,25 @@ impl PairwiseDistancesHandler {
     }
 }
 
+fn brute_force_alpha_set(
+    center: IndexT,
+    neighbor: IndexT,
+    candidates: &[IndexT],
+    alpha: f32,
+    dataset: &dyn Dataset<f32>,
+) -> HashSet<IndexT> {
+    let mut alpha_set: HashSet<IndexT> = HashSet::new();
+
+    for j in candidates.iter() {
+        let center_dist = dataset.compare_internal(center as usize, *j as usize) as f32;
+        let neighbor_dist = dataset.compare_internal(neighbor as usize, *j as usize) as f32;
+        if center_dist > neighbor_dist * alpha {
+            alpha_set.insert(*j);
+        }
+    }
+    alpha_set
+}
+
 /// returns the set of candidates that would be pruned by each point with a given alpha
 /// 
 /// In the current implementation, this requires materializing the sorted distance matrix.
@@ -85,29 +102,29 @@ pub fn materialize_alpha_sets(
     pairwise_distances: &PairwiseDistancesHandler,
 ) -> Vec<(IndexT, HashSet<IndexT>)> {
     let mut alpha_sets: HashMap<IndexT, HashSet<IndexT>> = HashMap::new();
+
+    if candidates.is_empty() {
+        return Vec::new();
+    }
     
     for i in candidates.iter() {
         alpha_sets.insert(*i, HashSet::new());
     }
 
-    for p in candidates.iter() {
-        let dist = dataset.compare_internal(center as usize, *p as usize) as f32;
-        let memberships = pairwise_distances.closer_than(*p, dist / alpha);
-        for j in memberships.iter() {
-            if *j != center {
-                alpha_sets.get_mut(j).unwrap().insert(*p);
+    for point_to_cover in candidates.iter() {
+        // DEBUG: compare internal is suspect here
+        // the distance from 40 to 46 is plainly not so large
+        let dist = dataset.compare_internal(center as usize, *point_to_cover as usize) as f32;
+
+
+        let memberships = pairwise_distances.closer_than(*point_to_cover, dist / alpha).to_vec();
+        for would_be_neighbor in memberships.iter() {
+            if *would_be_neighbor != center {
+                alpha_sets.get_mut(would_be_neighbor).unwrap().insert(*point_to_cover);
             }
         }
     }
 
-    // // print indices of every point with alpha set of size candidates.len() - 1
-    // let full_sets: Vec<IndexT> = alpha_sets.clone()
-    //     .into_iter()
-    //     .filter(|(_, covered_set)| covered_set.len() == 999)
-    //     .map(|x| x.0)
-    //     .collect();
-
-    // println!("Full alpha sets: {:?}", full_sets.len());
 
     alpha_sets.
         into_iter()
@@ -126,18 +143,11 @@ pub fn naive_semi_greedy_prune(
 ) -> Vec<IndexT> {
     let mut new_neighbors: Vec<IndexT> = Vec::new();
 
-    let mut alpha_sets = materialize_alpha_sets(center, candidates, alpha, dataset, pairwise_distances);
-
-    // add the nearest neighbor first
-    let nearest = pairwise_distances.nearest(center);
-
-    new_neighbors.push(nearest.0);
-    alpha_sets.retain(|(i, _)| *i != nearest.0);
-
-    // remove already pruned points from candidate lists
-    for set in alpha_sets.iter_mut() {
-        set.1.retain(|j| *j != nearest.0);
+    if candidates.is_empty() {
+        return new_neighbors;
     }
+
+    let mut alpha_sets = materialize_alpha_sets(center, candidates, alpha, dataset, pairwise_distances);
 
     // Sort alpha sets by size ascending
     alpha_sets.sort_by(|a, b| a.1.len().partial_cmp(&b.1.len()).unwrap());
