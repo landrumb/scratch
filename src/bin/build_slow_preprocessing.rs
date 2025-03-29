@@ -18,9 +18,9 @@ use scratch::util::recall::recall;
 static SUBSET_SIZE: Option<&'static str> = option_env!("SUBSET_SIZE");
 
 fn main() {
-    let default_data_file = String::from("data/random2d/base.fbin");
+    let default_data_file = String::from("data/word2vec-google-news-300_50000_lowercase/base.fbin");
     let default_query_file =
-        String::from("data/random2d/query.fbin");
+        String::from("data/word2vec-google-news-300_50000_lowercase/query.fbin");
     // let default_graph_file =
     //     String::from("data/word2vec-google-news-300_50000_lowercase/outputs/vamana");
     let default_gt_file = String::from("data/word2vec-google-news-300_50000_lowercase/GT");
@@ -106,7 +106,7 @@ fn main() {
     let results: Vec<Vec<u32>> = (0..queries.size())
     // let results: Vec<Vec<u32>> = (0..subset_size)
         .into_par_iter()
-        .map(|i| beam_search(queries.get(i), &graph, &subset, 0, 100))
+        .map(|i| beam_search(queries.get(i), &graph, &subset, 0, 20))
         .collect();
 
     let elapsed = start.elapsed();
@@ -176,9 +176,9 @@ fn main() {
     println!("Fraction of points with an incoming edge from their nearest neighbor: {:.5}", n_points_connected_to_inverse_nn as f64 / subset.size() as f64);
 
      // print the results of the first 10 queries in the dataset
-    for i in 0..10 {
-        println!("Results {}: {:?}", i, results[i]);
-        println!("Ground truth {}: {:?}", i, gt.get_neighbors(i));
-    }
+    // for i in 0..10 {
+    //     println!("Results {}: {:?}", i, results[i]);
+    //     println!("Ground truth {}: {:?}", i, gt.get_neighbors(i));
+    // }
 
 }
