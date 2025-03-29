@@ -126,15 +126,11 @@ where
         .into_par_iter()
         .map(|i| {
             // Calculate distances to all reference points
-            let mut distances: Vec<(f32, u32)> = (0..ref_size)
-                .map(|j| {
-                    let dist = query_dataset.compare_internal(i, j) as f32;
-                    (dist, j as u32)
-                })
+            let distances: Vec<(f32, u32)> = ref_dataset
+                .brute_force(query_dataset.get(i))
+                .iter()
+                .map(|&(j, dist)| (dist as f32, j as u32))
                 .collect();
-
-            // Sort by distance
-            distances.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
 
             // Take the k nearest (or fewer if dataset is smaller than k)
             let top_k = std::cmp::min(k, distances.len());
