@@ -7,7 +7,7 @@ use std::time::Instant;
 use rand_distr::num_traits::ToPrimitive;
 use rayon::prelude::*;
 use scratch::constructions::slow_preprocessing::build_global_local_graph;
-use scratch::constructions::neighbor_selection::{naive_semi_greedy_prune, PairwiseDistancesHandler};
+use scratch::constructions::neighbor_selection::{naive_semi_greedy_prune, robust_prune_unbounded, PairwiseDistancesHandler};
 use scratch::data_handling::dataset::{DistanceMatrix, Subset, VectorDataset};
 use scratch::data_handling::dataset_traits::Dataset;
 use scratch::data_handling::fbin::read_fbin;
@@ -18,9 +18,9 @@ use scratch::util::recall::recall;
 static SUBSET_SIZE: Option<&'static str> = option_env!("SUBSET_SIZE");
 
 fn main() {
-    let default_data_file = String::from("data/word2vec-google-news-300_50000_lowercase/base.fbin");
+    let default_data_file = String::from("data/random2d/base.fbin");
     let default_query_file =
-        String::from("data/word2vec-google-news-300_50000_lowercase/query.fbin");
+        String::from("data/random2d/query.fbin");
     // let default_graph_file =
     //     String::from("data/word2vec-google-news-300_50000_lowercase/outputs/vamana");
     let default_gt_file = String::from("data/word2vec-google-news-300_50000_lowercase/GT");
@@ -64,7 +64,7 @@ fn main() {
 
     // build the graph
     start = Instant::now();
-    // let graph = build_slow_preprocesssing(&dataset, 1.0);
+    // let graph = build_slow_preprocesssing(&dataset, 1.01);
 
 
     let nested_boxed_distances = (0..subset.size())
@@ -78,19 +78,20 @@ fn main() {
         .collect::<Box<[Box<[(IndexT, f32)]>]>>();
     let pairwise_distances = PairwiseDistancesHandler::new(nested_boxed_distances);
 
-    // let graph = build_global_local_graph(&dataset, |candidates, dataset| {
-    //     robust_prune_unbounded(candidates.to_vec(), 1.0, dataset)
+    
+
+    // let graph = build_global_local_graph(&subset, |center, candidates| {
+    //     robust_prune_unbounded(candidates.iter().map(|i| (*i, subset.compare_internal(*i as usize, center as usize).to_f32().unwrap())).collect(), 1.01, &subset)
     // });
 
     let graph = build_global_local_graph(&subset, |center, candidates| {
-        naive_semi_greedy_prune(center, candidates, &subset, 1.0, &pairwise_distances)
+        naive_semi_greedy_prune(center, candidates, &subset, 1.01, &pairwise_distances)
     });
 
     let elapsed = start.elapsed();
     println!(
-        "built graph in {}.{:03} seconds",
-        elapsed.as_secs(),
-        elapsed.subsec_millis()
+        "built graph in {:?}",
+        elapsed
     );
 
     println!("Total edges: {}", graph.total_edges());
@@ -100,7 +101,6 @@ fn main() {
     // Load queries
     let queries: VectorDataset<f32> = read_fbin(query_path);
     
-
     // Run queries
     start = Instant::now();
     let results: Vec<Vec<u32>> = (0..queries.size())
@@ -111,29 +111,18 @@ fn main() {
 
     let elapsed = start.elapsed();
     println!(
-        "ran {} queries in {}.{:03} seconds ({} QPS)",
+        "ran {} queries in {:?} ({} QPS)",
         queries.size(),
-        elapsed.as_secs(),
-        elapsed.subsec_millis(),
+        elapsed,
         queries.size().to_f64().unwrap() / elapsed.as_secs_f64()
     );
-
-    // print the neighborhoods of the first 10 points in the dataset
-    for i in 0..10 {
-        println!("neighbors of {}: {:?}", i, graph.neighbors(i));
-    }
-
-    // what fraction of points have 20 as a neighbor?
-    let twenty_neighbors = (0..subset_size).filter(|i| graph.get_neighborhood(*i as IndexT).contains(&20)).count();
-    let fraction_twenty_neighbors = twenty_neighbors as f64 / subset.size() as f64;
-    println!("Fraction of points with 20 as a neighbor: {:.5}", fraction_twenty_neighbors);
 
 
     // // Load ground truth and compute recall
     // let gt = GroundTruth::read(gt_path);
 
     // compute gt over the subset
-    let gt = compute_ground_truth(&queries, &subset, 1).unwrap();
+    let gt = compute_ground_truth(&queries, &subset, 10).unwrap();
 
     let graph_recall = (0..results.len())
         .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
@@ -145,4 +134,51 @@ fn main() {
     let classic_graph = ClassicGraph::from(&graph);
     classic_graph.save(data_path.parent().unwrap().join("outputs").join("greedy").to_str().unwrap()).unwrap();
     println!("saved graph to disk");
+
+    // do the same querying with the dataset itself
+    let dataset_results: Vec<Vec<u32>> = (0..subset_size)
+        .into_par_iter()
+        .map(|i| beam_search(subset.get(i), &graph, &subset, 0, 1))
+        .collect();
+
+    let internal_gt = compute_ground_truth(&subset, &subset, 2).unwrap();
+
+    let dataset_recall = (0..dataset_results.len())
+        .map(|i| recall(dataset_results[i].as_slice(), &internal_gt.get_neighbors(i)[..1]))
+        .sum::<f64>()
+        / dataset_results.len().to_f64().unwrap();
+
+    println!("self recall: {:.5}", dataset_recall);
+
+    let n_points_connected_to_nearest_neighbor = (0..subset.size())
+        .into_par_iter()
+        .filter(|i| {
+            let neighbors = graph.neighbors(*i as IndexT);
+            let nearest_neighbor = internal_gt.get_neighbors(*i)[1];
+            neighbors.contains(&nearest_neighbor)
+        }
+        )
+        .count()
+        ;
+
+    println!("Fraction of points connected to their nearest neighbor: {:.5}", n_points_connected_to_nearest_neighbor as f64 / subset.size() as f64);
+
+    // how many points have an incoming edge from their nearest neighbor (should be all of them)
+    let n_points_connected_to_inverse_nn = (0..subset.size())
+        .into_par_iter()
+        .filter(|i| {
+            let nearest_neighbor = internal_gt.get_neighbors(*i)[1];
+            let neighbors = graph.neighbors(nearest_neighbor);
+            neighbors.contains(&(*i as IndexT))
+        }
+        )
+        .count();
+    println!("Fraction of points with an incoming edge from their nearest neighbor: {:.5}", n_points_connected_to_inverse_nn as f64 / subset.size() as f64);
+
+     // print the results of the first 10 queries in the dataset
+    for i in 0..10 {
+        println!("Results {}: {:?}", i, results[i]);
+        println!("Ground truth {}: {:?}", i, gt.get_neighbors(i));
+    }
+
 }
