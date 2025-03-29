@@ -15,8 +15,13 @@ pub fn read_fbin<T: Numeric>(path: &Path) -> VectorDataset<T> {
     let mmap = unsafe { Mmap::map(&file).expect("could not mmap file") };
     let mut reader = BufReader::new(&*mmap);
 
-    let n = u32::from_le_bytes(mmap[0..4].try_into().expect("could not read n"));
-    let dim = u32::from_le_bytes(mmap[4..8].try_into().expect("could not read dim"));
+    let mut n_buf = [0u8; 4];
+    reader.read_exact(&mut n_buf).expect("could not read n");
+    let n = u32::from_le_bytes(n_buf);
+
+    let mut dim_buf = [0u8; 4];
+    reader.read_exact(&mut dim_buf).expect("could not read dim");
+    let dim = u32::from_le_bytes(dim_buf);
 
     let element_size = std::mem::size_of::<T>();
     let expected_size = n as usize * dim as usize * element_size;
