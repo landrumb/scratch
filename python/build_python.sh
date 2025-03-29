@@ -25,6 +25,9 @@ else
     uv pip install numpy matplotlib maturin
 fi
 
+# remove the old installation
+rm -rf .venv/lib/python3.12/site-packages/scratch*
+
 # Build the Python extension with maturin
 echo "Building extension module with maturin..."
 maturin develop --release --features python
