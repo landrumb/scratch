@@ -13,6 +13,11 @@ use std::ops::Sub;
 /// let d = [0.0, 1.0, 0.0, 0.0];
 /// let distance2 = crate::scratch::distance::euclidean(&c, &d, 4);
 /// assert!((distance2 - f64::sqrt(2.0)).abs() < 1e-6);
+/// 
+/// let e = [3.0, 4.0];
+/// let f = [7.0, 1.0];
+/// let distance3 = crate::scratch::distance::euclidean(&e, &f, 2);
+/// assert!((distance3 - 5.0).abs() < 1e-6);
 /// ```
 pub fn euclidean<T>(a: &[T], b: &[T], length: usize) -> f64
 where
