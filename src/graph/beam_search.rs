@@ -33,7 +33,7 @@ pub fn beam_search_with_visited<T>(
         }
 
         // Sort the frontier by distance
-        frontier.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+        frontier.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
 
         // Keep only the best beam_width elements
         if frontier.len() > beam_width {
