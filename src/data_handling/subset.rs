@@ -43,4 +43,7 @@ impl <T: Numeric> Dataset<T> for Subset<T> {
     fn size(&self) -> usize {
         self.indices.len()
     }
+    fn get(&self, i: usize) -> &[T] {
+        self.get(i)
+    }
 }

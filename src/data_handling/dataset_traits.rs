@@ -5,6 +5,7 @@ use std::ops::Sub;
 pub trait Dataset<T>: Send + Sync {
     fn compare_internal(&self, i: usize, j: usize) -> f64; // this probably should take reference args(?)
     fn compare(&self, q: &[T], i: usize) -> f64;
+    fn get(&self, i: usize) -> &[T];
     fn size(&self) -> usize;
 
     fn brute_force(&self, q: &[T]) -> Box<[(usize, f32)]> {

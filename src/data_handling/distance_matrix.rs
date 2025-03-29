@@ -103,4 +103,7 @@ impl <T: Numeric> Dataset<T> for DistanceMatrix<T> {
     fn size(&self) -> usize {
         self.n
     }
+    fn get(&self, i: usize) -> &[T] {
+        self.dataset.get(i)
+    }
 }
