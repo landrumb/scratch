@@ -10,6 +10,7 @@ if __name__ == "__main__":
     parser.add_argument("-o", type=str, default="data", help="filename to save the dataset")
     args = parser.parse_args()
 
+    np.random.seed(42) 
     # Create random dataset
     dataset = np.random.rand(args.n, args.d).astype(np.float32)
 
