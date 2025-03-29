@@ -36,6 +36,9 @@ impl Dataset<f32> for MockVectorDataset {
     fn size(&self) -> usize {
         self.data.len()
     }
+    fn get(&self, i: usize) -> &[f32] {
+        &self.data[i]
+    }
 }
 
 #[test]
