@@ -59,7 +59,7 @@ fn main() {
     start = Instant::now();
     let results: Vec<Vec<u32>> = (0..queries.size())
         .into_par_iter()
-        .map(|i| beam_search(queries.get(i), &graph, &dataset, 0, 10))
+        .map(|i| beam_search(queries.get(i), &graph, &dataset, 0, 10, None))
         .collect();
 
     let elapsed = start.elapsed();

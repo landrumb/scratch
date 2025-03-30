@@ -13,6 +13,7 @@ pub fn beam_search_with_visited<T>(
     dataset: &dyn Dataset<T>,
     start: IndexT,
     beam_width: usize,
+    limit: Option<usize>,
 ) -> (Vec<(IndexT, f32)>, Vec<(IndexT, f32)>) {
     let mut frontier: Vec<(IndexT, f32)> = vec![(start, dataset.compare(query, start as usize).to_f32().unwrap())];
     frontier.reserve(beam_width);
@@ -39,6 +40,13 @@ pub fn beam_search_with_visited<T>(
         if frontier.len() > beam_width {
             frontier.truncate(beam_width);
         }
+
+        // Check for limit
+        if let Some(l) = limit {
+            if visited.len() >= l {
+                break;
+            }
+        }
     }
 
     (frontier, visited)
@@ -50,7 +58,8 @@ pub fn beam_search<T>(
     dataset: &dyn Dataset<T>,
     start: IndexT,
     beam_width: usize,
+    limit: Option<usize>,
 ) -> Vec<IndexT> {
-    let (frontier, _visited) = beam_search_with_visited(query, graph, dataset, start, beam_width);
+    let (frontier, _visited) = beam_search_with_visited(query, graph, dataset, start, beam_width, limit);
     frontier.into_iter().map(|(id, _)| id).collect()
 }

@@ -26,12 +26,20 @@ impl<T> VectorIndex<T> for GraphIndex<'_, '_, T> {
         let k = parameters.get::<usize>("k");
         let beam_width = parameters.get::<usize>("beam_width").unwrap_or(&10);
 
+        let limit = parameters.get::<usize>("limit");
+        let limit = if limit.is_some() {
+            Some(*limit.unwrap())
+        } else {
+            None
+        };
+
         let results = beam_search(
             query,
             self.graph,
             self.dataset,
             self.root,
             *beam_width,
+            limit,
         );
 
         if k.is_some() {

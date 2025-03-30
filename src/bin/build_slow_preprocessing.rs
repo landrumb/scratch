@@ -106,7 +106,7 @@ fn main() {
     let results: Vec<Vec<u32>> = (0..queries.size())
     // let results: Vec<Vec<u32>> = (0..subset_size)
         .into_par_iter()
-        .map(|i| beam_search(queries.get(i), &graph, &subset, 0, 20))
+        .map(|i| beam_search(queries.get(i), &graph, &subset, 0, 20, None))
         .collect();
 
     let elapsed = start.elapsed();
@@ -138,7 +138,7 @@ fn main() {
     // do the same querying with the dataset itself
     let dataset_results: Vec<Vec<u32>> = (0..subset_size)
         .into_par_iter()
-        .map(|i| beam_search(subset.get(i), &graph, &subset, 0, 1))
+        .map(|i| beam_search(subset.get(i), &graph, &subset, 0, 1, None))
         .collect();
 
     let internal_gt = compute_ground_truth(&subset, &subset, 2).unwrap();
