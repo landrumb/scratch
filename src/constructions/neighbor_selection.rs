@@ -8,10 +8,10 @@ use crate::{
 };
 
 /// robust prune without a degree bound
-pub fn robust_prune_unbounded(
+pub fn robust_prune_unbounded<T>(
     mut candidates: Vec<(IndexT, f32)>,
     alpha: f32,
-    dataset: &dyn Dataset<f32>,
+    dataset: &dyn Dataset<T>,
 ) -> Vec<IndexT> {
     let mut new_neighbors: Vec<IndexT> = Vec::new();
 
@@ -27,6 +27,33 @@ pub fn robust_prune_unbounded(
 
     new_neighbors
 }
+
+/// robust prune with a degree bound
+pub fn robust_prune(
+    mut candidates: Vec<(IndexT, f32)>,
+    alpha: f32,
+    dataset: &dyn Dataset<f32>,
+    degree_bound: usize,
+) -> Vec<IndexT> {
+    let mut new_neighbors: Vec<IndexT> = Vec::new();
+
+    // Sort candidates by distance, descending
+    candidates.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+
+    while let Some((n, _)) = candidates.pop() {
+        new_neighbors.push(n);
+        candidates.retain(|(i, dist)| {
+            alpha * dataset.compare_internal(n as usize, *i as usize) as f32 >= *dist
+        });
+
+        if new_neighbors.len() >= degree_bound {
+            break;
+        }
+    }
+
+    new_neighbors
+}
+
 
 pub struct PairwiseDistancesHandler {
     id_distance_pairs: Vec<Box<[(IndexT, f32)]>>,
