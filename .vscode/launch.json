@@ -21,6 +21,27 @@
             "args": [],
             "cwd": "${workspaceFolder}",
             "sourceLanguages": ["rust"]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug Slow Preprocessing",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=build_slow_preprocessing"
+                ],
+                "filter": {
+                    "name": "build_slow_preprocessing",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": ["rust"],
+            "env": {
+                "SUBSET_SIZE": "1000"
+            }
         }
     ]
 }
