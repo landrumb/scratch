@@ -301,8 +301,42 @@ pub fn incremental_greedy(
         }
     }
 
-    // TODO: once every voter has been added, we do greedy to finish covering every point
-    // we break ties arbitrarily.    
+    // once every voter has been added, we do greedy to finish covering every point
+    // we break ties arbitrarily.
+
+    while voters.len() > 0 {
+        // find the candidate with the most votes
+        let (new_neighbor, &n_votes) = votes.iter().enumerate().max_by(|a, b| a.1.cmp(b.1)).unwrap();
+        
+        assert!(!neighbors.contains(&(new_neighbor as IndexT)));
+
+        let mut covered_voters_to_remove: Vec<IndexT> = Vec::with_capacity(n_votes);
+        
+        // remove points from voters that are covered by j, and decrement the votes accordingly
+        let new_neighbor_as_vec = vec![new_neighbor as IndexT];
+        for tentative_voter in voters.iter() {
+            // check if the voter is covered by j
+            let (j_index, covered) = find_center_index(*tentative_voter, center as IndexT, pairwise_distances, &new_neighbor_as_vec);
+            if covered {
+                // remove the voter from the voters (lazily)
+                covered_voters_to_remove.push(*tentative_voter as IndexT);
+                // decrement the votes for elements of the hitting set of voter
+                for (k, _) in pairwise_distances.id_distance_pairs[*tentative_voter as usize].iter().take(j_index) {
+                    if !neighbors.contains(k) && *k != center {
+                        // decrement the votes for the candidate
+                        votes[*k as usize] -= 1;
+                    }
+                }
+            }
+        }
+
+        // remove the covered voters from the voters
+        for covered_voter in covered_voters_to_remove.iter() {
+            voters.remove(covered_voter);
+        }
+
+        neighbors.push(new_neighbor as IndexT);
+    }    
 
     neighbors
 }
