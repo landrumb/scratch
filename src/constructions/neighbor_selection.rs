@@ -96,7 +96,7 @@ impl PairwiseDistancesHandler {
 
     pub fn nearest(&self, i: IndexT) -> (IndexT, f32) {
         // to debug we'll just walk up the id_distance_pairs
-        self.id_distance_pairs[i as usize][1].clone()
+        self.id_distance_pairs[i as usize][1]
     }
 }
 
@@ -304,7 +304,7 @@ pub fn incremental_greedy(
     // once every voter has been added, we do greedy to finish covering every point
     // we break ties arbitrarily.
 
-    while voters.len() > 0 {
+    while !voters.is_empty() {
         // find the candidate with the most votes
         let (new_neighbor, &n_votes) = votes.iter().enumerate().max_by(|a, b| a.1.cmp(b.1)).unwrap();
         

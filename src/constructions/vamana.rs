@@ -37,13 +37,13 @@ pub fn build_vamana_graph<T>(
 
     // randomized insertion order which does not include the root. Counterintuitively,
     // the insertion order goes backwards to facilitate breaking it off
-    let mut insertion_order = (0..root).chain((root + 1)..dataset.size() as IndexT).into_iter().collect::<Vec<_>>();
+    let mut insertion_order = (0..root).chain((root + 1)..dataset.size() as IndexT).collect::<Vec<_>>();
     let mut rng = SmallRng::seed_from_u64(41901); // my birthday
     insertion_order.shuffle(&mut rng);
 
     // let kernel_size = min(KERNEL_SIZE, dataset.size() - 1 as usize);
     // just doing the whole thing serially for now
-    let kernel_size = dataset.size() - 1 as usize;
+    let kernel_size = dataset.size() - 1_usize;
 
     for i in insertion_order[0..kernel_size].iter() {
         let (_, visited) = beam_search_with_visited(dataset.get(*i as usize), &graph, dataset, root, beam_width, limit);

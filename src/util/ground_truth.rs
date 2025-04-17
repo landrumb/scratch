@@ -109,8 +109,8 @@ impl GroundTruth {
 
 /// Computes exact ground truth (nearest neighbors) for a query dataset against a reference dataset
 pub fn compute_ground_truth<T>(
-    query_dataset: &(impl Dataset<T> + Sync),
-    ref_dataset: &(impl Dataset<T> + Sync),
+    query_dataset: &impl Dataset<T>,
+    ref_dataset: &impl Dataset<T>,
     k: usize,
 ) -> Result<GroundTruth>
 where
@@ -129,7 +129,7 @@ where
             let distances: Vec<(f32, u32)> = ref_dataset
                 .brute_force(query_dataset.get(i))
                 .iter()
-                .map(|&(j, dist)| (dist as f32, j as u32))
+                .map(|&(j, dist)| (dist, j as u32))
                 .collect();
 
             // Take the k nearest (or fewer if dataset is smaller than k)
