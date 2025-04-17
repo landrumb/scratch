@@ -7,6 +7,7 @@ edition = "2021"
 clap = "4.5.31"
 id_tree = "1.8.0"
 indicatif = {version = "0.17.11", features = ["rayon"] }
+itertools = "0.14.0"
 memmap2 = "0.9.5"
 ndarray = {version = "0.16.1", features = ["rayon"] }
 numpy = { version = "0.24.0", optional = true }
@@ -51,6 +52,10 @@ path = "src/bin/build_kmt.rs"
 [[bin]]
 name = "build_slow_preprocessing"
 path = "src/bin/build_slow_preprocessing.rs"
+
+[[bin]]
+name = "build_vamana"
+path = "src/bin/build_vamana.rs"
 
 [[bin]]
 name = "kmt_parameter_exploration"
