@@ -3,7 +3,6 @@
 use std::collections::{HashMap, HashSet};
 
 use rand::seq::SliceRandom;
-use rayon::vec;
 
 use crate::{
     data_handling::dataset_traits::Dataset,
@@ -101,6 +100,7 @@ impl PairwiseDistancesHandler {
     }
 }
 
+#[allow(unused)]
 fn brute_force_alpha_set(
     center: IndexT,
     neighbor: IndexT,

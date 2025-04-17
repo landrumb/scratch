@@ -9,11 +9,11 @@ use scratch::graph::IndexT;
 // Size configurations for benchmarks
 const SMALL_K: usize = 8;
 const MEDIUM_K: usize = 16;
-const LARGE_K: usize = 32;
+// const LARGE_K: usize = 32;
 
 // Iteration configurations
 const LOW_ITER: usize = 5;
-const MEDIUM_ITER: usize = 10;
+// const MEDIUM_ITER: usize = 10;
 
 // Convergence threshold
 const EPSILON: f64 = 1e-4;

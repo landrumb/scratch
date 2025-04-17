@@ -1,19 +1,15 @@
-use std::boxed;
 use std::env::args;
-use std::ops::Sub;
 use std::path::Path;
 use std::time::Instant;
 
 use rand_distr::num_traits::ToPrimitive;
 use rayon::prelude::*;
-use scratch::constructions::slow_preprocessing::build_global_local_graph;
-use scratch::constructions::neighbor_selection::{naive_semi_greedy_prune, robust_prune_unbounded, PairwiseDistancesHandler};
 use scratch::constructions::vamana::{build_vamana_graph};
-use scratch::data_handling::dataset::{DistanceMatrix, Subset, VectorDataset};
+use scratch::data_handling::dataset::{Subset, VectorDataset};
 use scratch::data_handling::dataset_traits::Dataset;
 use scratch::data_handling::fbin::read_fbin;
 use scratch::graph::{beam_search, ClassicGraph, Graph, IndexT};
-use scratch::util::ground_truth::{compute_ground_truth, GroundTruth};
+use scratch::util::ground_truth::compute_ground_truth;
 use scratch::util::recall::recall;
 
 static SUBSET_SIZE: Option<&'static str> = option_env!("SUBSET_SIZE");
@@ -36,7 +32,7 @@ fn main() {
     // let graph_path_arg = args().nth(3).unwrap_or(default_graph_file);
 
     let gt_path_arg = args().nth(4).unwrap_or(default_gt_file);
-    let gt_path = Path::new(&gt_path_arg);
+    let _gt_path = Path::new(&gt_path_arg);
 
     // Load dataset
     let mut start = Instant::now();

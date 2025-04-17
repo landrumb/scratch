@@ -119,7 +119,7 @@ where
     use rayon::prelude::*;
 
     let n = query_dataset.size();
-    let ref_size = ref_dataset.size();
+    let _ref_size = ref_dataset.size();
 
     // Parallel computation of all query points
     let results: Vec<(Vec<u32>, Vec<f32>)> = (0..n)

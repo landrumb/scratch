@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use scratch::{
-    constructions::neighbor_selection::{incremental_greedy, naive_semi_greedy_prune, PairwiseDistancesHandler}, data_handling::{dataset::VectorDataset, dataset_traits::Dataset}, distance::euclidean, graph::IndexT
+    constructions::neighbor_selection::{incremental_greedy, PairwiseDistancesHandler}, data_handling::{dataset::VectorDataset, dataset_traits::Dataset}, distance::euclidean, graph::IndexT
 };
 
 fn main() {

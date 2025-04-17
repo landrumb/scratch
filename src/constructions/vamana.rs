@@ -1,22 +1,20 @@
 //! Vamana graph construction
 
-use std::{cmp::min, collections::HashMap, iter::once, sync::Arc};
+use std::iter::once;
 
 use crate::{data_handling::dataset_traits::Dataset, graph::{beam_search_with_visited, IndexT, MutableGraph, VectorGraph}};
 
-use itertools::Itertools;
 use rand::seq::SliceRandom;
 use rand::SeedableRng;
 use rand::rngs::SmallRng;
 use rand_distr::num_traits::ToPrimitive;
 
-use rayon::prelude::*;
 
 use super::neighbor_selection::robust_prune;
 
-const MAX_BATCH_SIZE: usize = 10000;
-const MAX_BATCH_FRACTION: usize = 10; // reciprocal of the fraction
-const KERNEL_SIZE: usize = 1000; // size of the initial batch of points
+// const MAX_BATCH_SIZE: usize = 10000;
+// const MAX_BATCH_FRACTION: usize = 10; // reciprocal of the fraction
+// const KERNEL_SIZE: usize = 1000; // size of the initial batch of points
 
 pub fn build_vamana_graph<T>(
     dataset: &dyn Dataset<T>,
