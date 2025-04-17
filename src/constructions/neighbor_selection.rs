@@ -2,6 +2,9 @@
 
 use std::collections::{HashMap, HashSet};
 
+use rand::seq::SliceRandom;
+use rayon::vec;
+
 use crate::{
     data_handling::dataset_traits::Dataset,
     graph::IndexT,
@@ -29,10 +32,10 @@ pub fn robust_prune_unbounded<T>(
 }
 
 /// robust prune with a degree bound
-pub fn robust_prune(
+pub fn robust_prune<T>(
     mut candidates: Vec<(IndexT, f32)>,
     alpha: f32,
-    dataset: &dyn Dataset<f32>,
+    dataset: &dyn Dataset<T>,
     degree_bound: usize,
 ) -> Vec<IndexT> {
     let mut new_neighbors: Vec<IndexT> = Vec::new();
@@ -198,4 +201,108 @@ pub fn naive_semi_greedy_prune(
     }
 
     new_neighbors
+}
+
+pub fn incremental_greedy(
+    center: IndexT,
+    candidates: &[IndexT],
+    _dataset: &dyn Dataset<f32>,
+    _alpha: f32,
+    pairwise_distances: &PairwiseDistancesHandler
+) -> Vec<IndexT> {
+    let mut rng = rand::rng();
+    // order in which we sample voters
+    // worth exploring just "sampling" in order of distance from the center
+    let mut permutation = (0..center as usize).chain((center as usize + 1)..candidates.len()).collect::<Vec<usize>>();
+    permutation.shuffle(&mut rng);
+
+    let mut voters: HashSet<IndexT> = HashSet::new();
+    let mut votes: Vec<usize> = vec![0; candidates.len() + 1]; // because the center isn't a candidate
+    
+    let mut neighbors: Vec<IndexT> = Vec::new();
+
+    // threshold is the natural log of the number of candidates
+    let threshold = (candidates.len() as f32).ln().round() as usize;
+
+    /// returns the index of the center, and a boolean indicating if the point was covered
+    fn find_center_index(
+        point : IndexT,
+        center: IndexT,
+        pairwise_distances: &PairwiseDistancesHandler,
+        neighbors: &Vec<IndexT>,
+    ) -> (usize, bool) {
+        let mut result: (i64, bool) = (-1, false);
+        for (i, (vertex, _)) in pairwise_distances.id_distance_pairs[point as usize].iter().enumerate() {
+            if *vertex == center {
+                result = (i as i64, result.1);
+                break;
+            } else if neighbors.contains(vertex) {
+                result = (0, true);
+            }
+        }
+        assert!(result.0 >= 0); // either running on the center or not finding it
+        (result.0 as usize, result.1)
+    }
+
+    // sample voters and update votes accordingly
+    for voter in permutation.iter() {
+        // check if voter is covered
+        // we just walk through the sorted pairwise distances from the voter and see if we get a neighbor or the center first
+        let (center_index, covered) = find_center_index(*voter as IndexT, center, pairwise_distances, &neighbors);
+        if covered {
+            continue;
+        }
+        // if the voter is not covered, we add it to the voters
+        voters.insert(*voter as IndexT);
+        // and we increment the votes for all candidates which are not already neighbors
+        for (j, _) in pairwise_distances.id_distance_pairs[*voter].iter().take(center_index) {
+            if !neighbors.contains(j) && *j != center {
+                votes[*j as usize] += 1;
+            }
+        }
+
+        // check if any of the elements we just incremented surpassed the threshold
+        // we assume here that because the point we just added will get removed when the covered
+        // voters are removed, we can ignore wanting to add multiple neighbors at once
+        // because anything else that just crossed the threshold will be knocked back down below the
+        // threshold
+        let (new_neighbor, &n_votes) = votes.iter().enumerate().max_by(|a, b| a.1.cmp(b.1)).unwrap();
+        
+        if n_votes >= threshold {
+            // add j as a neighbor
+            assert!(!neighbors.contains(&(new_neighbor as IndexT)));
+
+            let mut covered_voters_to_remove: Vec<IndexT> = Vec::with_capacity(n_votes);
+
+            // remove points from voters that are covered by j, and decrement the votes accordingly
+            let new_neighbor_as_vec = vec![new_neighbor as IndexT];
+            for tentative_voter in voters.iter() {
+                // check if the voter is covered by j
+                let (j_index, covered) = find_center_index(*tentative_voter, center as IndexT, pairwise_distances, &new_neighbor_as_vec);
+                if covered {
+                    // remove the voter from the voters (lazily)
+                    covered_voters_to_remove.push(*tentative_voter as IndexT);
+                    // decrement the votes for elements of the hitting set of voter
+                    for (k, _) in pairwise_distances.id_distance_pairs[*tentative_voter as usize].iter().take(j_index) {
+                        if !neighbors.contains(k) && *k != center {
+                            // decrement the votes for the candidate
+                            votes[*k as usize] -= 1;
+                        }
+                    }
+                }
+            }
+
+            // remove the covered voters from the voters
+            for covered_voter in covered_voters_to_remove.iter() {
+                voters.remove(covered_voter);
+            }
+
+            neighbors.push(new_neighbor as IndexT);
+        }
+    }
+
+    // TODO: once every voter has been added, we do greedy to finish covering every point
+    // we break ties arbitrarily.    
+
+    neighbors
 }

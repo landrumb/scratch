@@ -7,7 +7,7 @@ use std::time::Instant;
 use rand_distr::num_traits::ToPrimitive;
 use rayon::prelude::*;
 use scratch::constructions::slow_preprocessing::build_global_local_graph;
-use scratch::constructions::neighbor_selection::{naive_semi_greedy_prune, robust_prune_unbounded, PairwiseDistancesHandler};
+use scratch::constructions::neighbor_selection::{incremental_greedy, naive_semi_greedy_prune, robust_prune_unbounded, PairwiseDistancesHandler};
 use scratch::data_handling::dataset::{DistanceMatrix, Subset, VectorDataset};
 use scratch::data_handling::dataset_traits::Dataset;
 use scratch::data_handling::fbin::read_fbin;
@@ -35,15 +35,15 @@ fn main() {
     // let graph_path_arg = args().nth(3).unwrap_or(default_graph_file);
 
     let gt_path_arg = args().nth(4).unwrap_or(default_gt_file);
-    let gt_path = Path::new(&gt_path_arg);
+    let _gt_path = Path::new(&gt_path_arg);
 
     // Load dataset
     let mut start = Instant::now();
     // let dataset: VectorDataset<f32> = read_fbin(data_path);
     
     let boxed_dataset: Box<VectorDataset<f32>> = Box::new(read_fbin(data_path));
-    let mut subset_size: usize = boxed_dataset.size();
-    
+    // let mut subset_size: usize = boxed_dataset.size();
+    let mut subset_size: usize = 1000;
     if let Some(subset_size_arg) = SUBSET_SIZE {
         subset_size = subset_size_arg.parse::<usize>().unwrap();
     } 
@@ -85,8 +85,11 @@ fn main() {
     // });
 
     let graph = build_global_local_graph(&subset, |center, candidates| {
-        naive_semi_greedy_prune(center, candidates, &subset, 1.01, &pairwise_distances)
+        incremental_greedy(center, candidates, &subset, 1.01, &pairwise_distances)
     });
+    // let graph = build_global_local_graph(&subset, |center, candidates| {
+    //     naive_semi_greedy_prune(center, candidates, &subset, 1.01, &pairwise_distances)
+    // });
 
     let elapsed = start.elapsed();
     println!(

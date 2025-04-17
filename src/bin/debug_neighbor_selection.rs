@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use scratch::{
-    constructions::neighbor_selection::{naive_semi_greedy_prune, PairwiseDistancesHandler}, data_handling::{dataset::VectorDataset, dataset_traits::Dataset}, distance::euclidean, graph::IndexT
+    constructions::neighbor_selection::{incremental_greedy, naive_semi_greedy_prune, PairwiseDistancesHandler}, data_handling::{dataset::VectorDataset, dataset_traits::Dataset}, distance::euclidean, graph::IndexT
 };
 
 fn main() {
@@ -48,8 +48,8 @@ fn main() {
     let brute_force_distances = dataset.brute_force_internal(center_id as usize);
     println!("Brute force distances for point {}: {:?}", center_id, brute_force_distances);
 
-    println!("Running naive_semi_greedy_prune for point {} with alpha={}", center_id, alpha);
-    let neighbors = naive_semi_greedy_prune(
+    println!("Running neighbor selection for point {} with alpha={}", center_id, alpha);
+    let neighbors = incremental_greedy(
         center_id,
         &candidates,
         &dataset,
