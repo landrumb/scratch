@@ -83,7 +83,7 @@ fn main() {
     // });
 
     let graph = build_global_local_graph(&subset, |center, candidates| {
-        incremental_greedy(center, candidates, &subset, 1.0, &pairwise_distances)
+        incremental_greedy(center, candidates, &subset, 1.0, &pairwise_distances, None)
     });
     // let graph = build_global_local_graph(&subset, |center, candidates| {
     //     naive_semi_greedy_prune(center, candidates, &subset, 1.01, &pairwise_distances)

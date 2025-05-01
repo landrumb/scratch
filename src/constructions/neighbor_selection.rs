@@ -208,7 +208,8 @@ pub fn incremental_greedy(
     candidates: &[IndexT],
     _dataset: &dyn Dataset<f32>,
     _alpha: f32,
-    pairwise_distances: &PairwiseDistancesHandler
+    pairwise_distances: &PairwiseDistancesHandler,
+    seed_neighbors: Option<&Vec<IndexT>>,
 ) -> Vec<IndexT> {
     let mut rng = rand::rng();
     // order in which we sample voters
@@ -219,7 +220,7 @@ pub fn incremental_greedy(
     let mut voters: HashSet<IndexT> = HashSet::new();
     let mut votes: Vec<usize> = vec![0; candidates.len() + 1]; // because the center isn't a candidate
     
-    let mut neighbors: Vec<IndexT> = Vec::new();
+    let mut neighbors: Vec<IndexT> = seed_neighbors.unwrap_or(&Vec::new()).to_vec();
 
     // threshold is the natural log of the number of candidates
     let threshold = (candidates.len() as f32).ln().round() as usize;
