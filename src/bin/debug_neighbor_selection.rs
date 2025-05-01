@@ -55,6 +55,7 @@ fn main() {
         &dataset,
         alpha,
         &pairwise_distances,
+        None,
     );
     
     println!("Selected {} neighbors:", neighbors.len());
