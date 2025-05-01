@@ -42,9 +42,9 @@ fn main() {
     let boxed_dataset: Box<VectorDataset<f32>> = Box::new(read_fbin(data_path));
     // let mut subset_size: usize = boxed_dataset.size();
     let subset_size: usize = std::env::var("SUBSET_SIZE")
-        .unwrap_or_else(|_| "1000".to_string())
+        .unwrap_or_else(|_| boxed_dataset.size().to_string())
         .parse()
-        .unwrap_or(1000);
+        .unwrap_or(boxed_dataset.size());
 
     println!("Using subset of size {}", subset_size);
     let subset_indices = (0..subset_size).collect::<Vec<usize>>();
