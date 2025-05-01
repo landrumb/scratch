@@ -13,7 +13,7 @@ use scratch::graph::{beam_search, ClassicGraph, Graph, IndexT};
 use scratch::util::ground_truth::compute_ground_truth;
 use scratch::util::recall::recall;
 
-static SUBSET_SIZE: Option<&'static str> = option_env!("SUBSET_SIZE");
+// static SUBSET_SIZE: Option<&'static str> = option_env!("SUBSET_SIZE");
 
 fn main() {
     let default_data_file = String::from("data/word2vec-google-news-300_50000_lowercase/base.fbin");
@@ -41,10 +41,10 @@ fn main() {
     
     let boxed_dataset: Box<VectorDataset<f32>> = Box::new(read_fbin(data_path));
     // let mut subset_size: usize = boxed_dataset.size();
-    let mut subset_size: usize = 1000;
-    if let Some(subset_size_arg) = SUBSET_SIZE {
-        subset_size = subset_size_arg.parse::<usize>().unwrap();
-    } 
+    let subset_size: usize = std::env::var("SUBSET_SIZE")
+        .unwrap_or_else(|_| "1000".to_string())
+        .parse()
+        .unwrap_or(1000);
 
     println!("Using subset of size {}", subset_size);
     let subset_indices = (0..subset_size).collect::<Vec<usize>>();
@@ -83,7 +83,7 @@ fn main() {
     // });
 
     let graph = build_global_local_graph(&subset, |center, candidates| {
-        incremental_greedy(center, candidates, &subset, 1.01, &pairwise_distances)
+        incremental_greedy(center, candidates, &subset, 1.0, &pairwise_distances)
     });
     // let graph = build_global_local_graph(&subset, |center, candidates| {
     //     naive_semi_greedy_prune(center, candidates, &subset, 1.01, &pairwise_distances)
