@@ -19,8 +19,9 @@ fn main() {
 
     // if there's no file, create it and write the header
     if log_writer.get_ref().metadata().unwrap().len() == 0 {
-        log_writer.write_record(&["subset_size", "dcmp_time", "construction_time", "avg_degree", "max_degree"]).unwrap();
+        log_writer.write_record(&["method", "subset_size", "dcmp_time", "construction_time", "avg_degree", "max_degree"]).unwrap();
     }
+    let method = "incremental_greedy";
     
     let subset_sizes = vec![1000, 2500, 5000, 7500, 10000, 15000, 20000, 25000];
     
@@ -55,7 +56,7 @@ fn main() {
         let start = Instant::now();
         
         let graph = build_global_local_graph(&subset, |center, candidates| {
-            incremental_greedy(center, candidates, &subset, 1.0, &pairwise_distances)
+            incremental_greedy(center, candidates, &subset, 1.0, &pairwise_distances, None)
         });
 
         let construction_time = start.elapsed();
@@ -74,6 +75,7 @@ fn main() {
         let max_degree = graph.max_degree();
 
         log_writer.write_record(&[
+            method.to_string(),
             subset_size.to_string(),
             dcmp_time.as_secs_f64().to_string(),
             construction_time.as_secs_f64().to_string(),
