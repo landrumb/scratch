@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 clap = "4.5.31"
+csv = "1.3.1"
 id_tree = "1.8.0"
 indicatif = {version = "0.17.11", features = ["rayon"] }
 itertools = "0.14.0"
@@ -60,6 +61,10 @@ path = "src/bin/build_vamana.rs"
 [[bin]]
 name = "kmt_parameter_exploration"
 path = "src/bin/experiments/kmt_parameter_exploration.rs"
+
+[[bin]]
+name = "navigable_scaling"
+path = "src/bin/experiments/navigable_scaling.rs"
 
 [[bench]]
 name = "euclidean_distance"
