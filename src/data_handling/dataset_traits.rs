@@ -54,3 +54,25 @@ pub trait Dataset<T>: Send + Sync {
         result.into_boxed_slice()
     }
 }
+
+impl<T, D> Dataset<T> for Box<D>
+where
+    T: Numeric,
+    D: Dataset<T>,
+{
+    fn compare_internal(&self, i: usize, j: usize) -> f64 {
+        self.as_ref().compare_internal(i, j)
+    }
+
+    fn compare(&self, q: &[T], i: usize) -> f64 {
+        self.as_ref().compare(q, i)
+    }
+
+    fn get(&self, i: usize) -> &[T] {
+        self.as_ref().get(i)
+    }
+
+    fn size(&self) -> usize {
+        self.as_ref().size()
+    }
+}
