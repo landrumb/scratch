@@ -7,3 +7,13 @@ pub enum Distance {
     Cosine,
     InnerProduct,
 }
+impl Distance {
+    pub fn from_str(s: &str) -> Self {
+        match s {
+            "euclidean" => Distance::Euclidean,
+            "cosine" => Distance::Cosine,
+            "inner_product" => Distance::InnerProduct,
+            _ => panic!("Unknown distance: {}", s),
+        }
+    }
+}
