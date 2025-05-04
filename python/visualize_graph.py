@@ -118,7 +118,7 @@ for i, point in enumerate(subset_points):
 
 # Draw center point
 plt.scatter(center[0], center[1], color='red', s=250, edgecolor='k',
-            linewidth=1.5, label=f'Center {center_idx}')
+            linewidth=1.5, label=f'Center ({center_idx})')
 
 # For each neighbor, draw points that are alpha times closer to the neighbor than to the center
 for i, neighbor_idx in enumerate(neighbors):
@@ -173,6 +173,10 @@ for i, neighbor_idx in enumerate(neighbors):
     # Plot the contour at level 0
     contour = plt.contour(X, Y, Z, levels=[0], colors=[color], linestyles='dashed', 
                 linewidths=1.5)
+    
+    # if i == 0:
+    #     # Color the region where dist_to_neighbor < dist_to_center/alpha
+    #     cf = plt.contourf(X, Y, Z, levels=[Z.min(), 0], colors=[color], alpha=0.1)
 
 # plt.title(f'Alpha Coverage Visualization (alpha={alpha})')
 plt.legend()
