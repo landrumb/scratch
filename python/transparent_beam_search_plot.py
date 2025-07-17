@@ -14,7 +14,7 @@ def main():
     neighborhoods = graph_file_to_list_of_lists(graph_path)
     graph = PyVectorGraph(neighborhoods)
 
-    query = dataset.get_vector(0)
+    query = dataset.get_vector(10_000)
 
     _frontier, _visited, steps = graph.transparent_beam_search(
         query, dataset, 0, 10, None
@@ -26,6 +26,9 @@ def main():
     rank = {idx: i for i, idx in enumerate(ordered_ids)}
 
     log_ranks = [np.log(rank[step[1]] + 1) for step in steps]
+    # print("Steps:", steps)
+    # print("Log Ranks:", log_ranks)
+    # print("Distances:", [dataset.compare(query, step[1]) for step in steps])
 
     plt.figure()
     plt.plot(range(len(log_ranks)), log_ranks)
