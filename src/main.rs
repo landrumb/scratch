@@ -18,12 +18,11 @@ use scratch::util::recall::recall;
 use rayon::prelude::*;
 
 fn main() {
-    let default_data_file = String::from("data/word2vec-google-news-300_50000_lowercase/base.fbin");
-    let default_query_file =
-        String::from("data/word2vec-google-news-300_50000_lowercase/query.fbin");
-    let default_graph_file =
-        String::from("data/word2vec-google-news-300_50000_lowercase/outputs/vamana");
-    let default_gt_file = String::from("data/word2vec-google-news-300_50000_lowercase/GT");
+    let dataset_dir = String::from("data/word2vec-google-news-300_50000_lowercase");
+    let default_data_file = format!("{}/base.fbin", dataset_dir);
+    let default_query_file = format!("{}/query.fbin", dataset_dir);
+    let default_graph_file = format!("{}/outputs/vamana", dataset_dir);
+    let default_gt_file = format!("{}/GT", dataset_dir);
 
     // presumably we'll have some command line arguments here
 
