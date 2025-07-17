@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scratch import PyVectorDataset, PyVectorGraph
 from utils import fbin_to_numpy, graph_file_to_list_of_lists
+import os
 
 
 def main():
@@ -36,7 +37,12 @@ def main():
     plt.ylabel("Log Rank")
     plt.title("Transparent Beam Search Rank Progress")
     plt.tight_layout()
-    plt.savefig("beam_search_progress.png")
+    
+    # ensure the output directory exists
+    output_dir = "../outputs/plots"
+    os.makedirs(output_dir, exist_ok=True)
+    plt.savefig(os.path.join(output_dir, "transparent_beam_search_rank_progress.png"))
+    plt.show()
 
 
 if __name__ == "__main__":
