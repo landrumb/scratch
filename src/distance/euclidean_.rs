@@ -6,49 +6,77 @@ use std::ops::Sub;
 /// ```
 /// let a = [1.0, 2.0, 3.0];
 /// let b = [4.0, 5.0, 6.0];
-/// let distance = crate::scratch::distance::euclidean(&a, &b, 3);
-/// assert!((distance - f64::sqrt(27.0)).abs() < 1e-6);
+/// let distance = crate::scratch::distance::euclidean(&a, &b);
+/// assert!((distance as f64 - f64::sqrt(27.0)).abs() < 1e-6);
 ///
 /// let c = [1.0, 0.0, 0.0, 0.0];
 /// let d = [0.0, 1.0, 0.0, 0.0];
-/// let distance2 = crate::scratch::distance::euclidean(&c, &d, 4);
-/// assert!((distance2 - f64::sqrt(2.0)).abs() < 1e-6);
+/// let distance2 = crate::scratch::distance::euclidean(&c, &d);
+/// assert!((distance2 as f64 - f64::sqrt(2.0)).abs() < 1e-6);
 /// 
 /// let e = [3.0, 4.0];
 /// let f = [7.0, 1.0];
-/// let distance3 = crate::scratch::distance::euclidean(&e, &f, 2);
+/// let distance3 = crate::scratch::distance::euclidean(&e, &f);
 /// assert!((distance3 - 5.0).abs() < 1e-6);
 /// ```
-pub fn euclidean<T>(a: &[T], b: &[T], length: usize) -> f64
+pub fn euclidean<T>(a: &[T], b: &[T]) -> f32
 where
     T: Copy + Into<f64> + Sub<Output = T>,
 {
-    assert!(a.len() >= length && b.len() >= length);
+    assert_eq!(a.len(), b.len());
     let sum = a
         .iter()
         .zip(b.iter())
-        .take(length)
         .map(|(&x, &y)| {
             let diff = (x - y).into();
             diff * diff
         })
         .sum::<f64>();
-    sum.sqrt()
+    sum.sqrt() as f32
 }
 
-pub fn sq_euclidean<T>(a: &[T], b: &[T], length: usize) -> f64
+pub fn sq_euclidean<T>(a: &[T], b: &[T]) -> f32
 where
     T: Copy + Into<f64>,
 {
-    assert!(a.len() >= length && b.len() >= length);
+    assert_eq!(a.len(), b.len());
     let sum = a
         .iter()
         .zip(b.iter())
-        .take(length)
         .map(|(&x, &y)| {
             let diff = x.into() - y.into();
             diff * diff
         })
         .sum::<f64>();
-    sum
+    sum as f32
+}
+
+pub trait SqEuclidean {
+    fn sq_euclidean(a: &[Self], b: &[Self]) -> f32
+    where
+        Self: Sized;
+}
+
+impl SqEuclidean for f32 {
+    fn sq_euclidean(a: &[Self], b: &[Self]) -> f32 {
+        sq_euclidean(a, b)
+    }
+}
+
+impl SqEuclidean for f64 {
+    fn sq_euclidean(a: &[Self], b: &[Self]) -> f32 {
+        sq_euclidean(a, b)
+    }
+}
+
+impl SqEuclidean for i32 {
+    fn sq_euclidean(a: &[Self], b: &[Self]) -> f32 {
+        sq_euclidean(a, b)
+    }
+}
+
+impl SqEuclidean for i8 {
+    fn sq_euclidean(a: &[Self], b: &[Self]) -> f32 {
+        sq_euclidean(a, b)
+    }
 }
