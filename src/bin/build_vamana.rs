@@ -108,8 +108,10 @@ fn main() {
 
     // write the graph to disk
     let classic_graph = ClassicGraph::from(&graph);
-    classic_graph.save(data_path.parent().unwrap().join("outputs").join("greedy").to_str().unwrap()).unwrap();
-    println!("saved graph to disk");
+    // if the output directory does not exist, create it
+    let output_dir = data_path.parent().unwrap().join("outputs");
+    std::fs::create_dir_all(&output_dir).expect("could not create output directory");
+    classic_graph.save(output_dir.join("vamana").to_str().unwrap()).unwrap();
 
     // do the same querying with the dataset itself
     let dataset_results: Vec<Vec<u32>> = (0..subset_size)
