@@ -16,15 +16,22 @@ def main():
 
     query = dataset.get_vector(0)
 
-    _frontier, _visited, steps = graph.transparent_beam_search(query, dataset, 0, 10, None)
+    _frontier, _visited, steps = graph.transparent_beam_search(
+        query, dataset, 0, 10, None
+    )
 
-    distances = [dataset.compare(query, step[1]) for step in steps]
+    # Precompute the rank of each dataset point based on distance to the query
+    brute_force = dataset.brute_force(query)
+    ordered_ids = [idx for idx, _ in brute_force]
+    rank = {idx: i for i, idx in enumerate(ordered_ids)}
+
+    log_ranks = [np.log(rank[step[1]] + 1) for step in steps]
 
     plt.figure()
-    plt.plot(range(len(distances)), np.log(distances))
+    plt.plot(range(len(log_ranks)), log_ranks)
     plt.xlabel("Step")
-    plt.ylabel("Log Distance")
-    plt.title("Transparent Beam Search Distances")
+    plt.ylabel("Log Rank")
+    plt.title("Transparent Beam Search Rank Progress")
     plt.tight_layout()
     plt.savefig("beam_search_progress.png")
 
