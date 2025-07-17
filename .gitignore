@@ -1,3 +1,4 @@
 /target
 data
 outputs
+*.pyc

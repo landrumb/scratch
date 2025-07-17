@@ -46,6 +46,7 @@ impl <T: Numeric> Dataset<T> for Subset<T> {
         self.indices.len()
     }
     fn get(&self, i: usize) -> &[T] {
-        self.get(i)
+        let orig_idx = self.indices[i];
+        self.dataset.get(orig_idx)
     }
 }
