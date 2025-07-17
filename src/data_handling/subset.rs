@@ -1,5 +1,7 @@
 //! Dataset that's a subset of another dataset
 
+use crate::distance::SqEuclidean;
+
 use super::dataset_traits::{Dataset, Numeric};
 
 /// Important to note that indices here are relative to the subset, not the original dataset.
@@ -8,7 +10,7 @@ pub struct Subset<T> {
     indices: Vec<usize>,
 }
 
-impl<T: Numeric> Subset<T> {
+impl<T: Numeric + SqEuclidean> Subset<T> {
     pub fn new(dataset: Box<dyn Dataset<T>>, indices: Vec<usize>) -> Self {
         Subset { dataset, indices }
     }

@@ -7,11 +7,11 @@ use std::{ops::Sub, path::Path};
 
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
-use crate::distance::euclidean;
+use crate::distance::{euclidean, SqEuclidean};
 
 use super::dataset_traits::{Dataset, Numeric};
 
-impl<T: Numeric> Dataset<T> for VectorDataset<T> {
+impl<T: Numeric + SqEuclidean> Dataset<T> for VectorDataset<T> {
     fn compare_internal(&self, i: usize, j: usize) -> f64 {
         self.compare_euclidean(i, j) 
     }
@@ -27,13 +27,13 @@ impl<T: Numeric> Dataset<T> for VectorDataset<T> {
 }
 
 #[derive(Debug, Clone)]
-pub struct VectorDataset<T: Numeric> {
+pub struct VectorDataset<T: Numeric + SqEuclidean> {
     data: Box<[T]>,
     pub n: usize,
     pub dim: usize,
 }
 
-impl<T: Numeric> VectorDataset<T>
+impl<T: Numeric + SqEuclidean> VectorDataset<T>
 where
     T: Copy + Into<f64> + Sub<Output = T>,
 {

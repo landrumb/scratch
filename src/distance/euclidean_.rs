@@ -1,5 +1,7 @@
 use std::ops::Sub;
 
+use rand_distr::num_traits::ToPrimitive;
+
 /// calculate the euclidean distance between two vectors
 ///
 /// Example:
@@ -21,45 +23,54 @@ use std::ops::Sub;
 /// ```
 pub fn euclidean<T>(a: &[T], b: &[T]) -> f32
 where
-    T: Copy + Into<f64> + Sub<Output = T>,
+    T: Copy + Into<f64> + Sub<Output = T> + SqEuclidean,
 {
-    assert_eq!(a.len(), b.len());
-    let sum = a
-        .iter()
-        .zip(b.iter())
-        .map(|(&x, &y)| {
-            let diff = (x - y).into();
-            diff * diff
-        })
-        .sum::<f64>();
-    sum.sqrt() as f32
+    // assert_eq!(a.len(), b.len());
+    // let sum = a
+    //     .iter()
+    //     .zip(b.iter())
+    //     .map(|(&x, &y)| {
+    //         let diff = (x - y).into();
+    //         diff * diff
+    //     })
+    //     .sum::<f64>();
+    // sum.sqrt() as f32
+    T::euclidean(a, b)
 }
 
 pub fn sq_euclidean<T>(a: &[T], b: &[T]) -> f32
 where
-    T: Copy + Into<f64>,
+    T: Copy + Into<f64> + SqEuclidean,
 {
-    assert_eq!(a.len(), b.len());
-    let sum = a
-        .iter()
-        .zip(b.iter())
-        .map(|(&x, &y)| {
-            let diff = x.into() - y.into();
-            diff * diff
-        })
-        .sum::<f64>();
-    sum as f32
+    // assert_eq!(a.len(), b.len());
+    // let sum = a
+    //     .iter()
+    //     .zip(b.iter())
+    //     .map(|(&x, &y)| {
+    //         let diff = x.into() - y.into();
+    //         diff * diff
+    //     })
+    //     .sum::<f64>();
+    // sum as f32
+    T::sq_euclidean(a, b)
 }
 
 pub trait SqEuclidean {
     fn sq_euclidean(a: &[Self], b: &[Self]) -> f32
     where
         Self: Sized;
+    fn euclidean(a: &[Self], b: &[Self]) -> f32
+    where
+        Self: Sized,
+        {
+        f32::sqrt(Self::sq_euclidean(a, b))
+    }
 }
 
 impl SqEuclidean for f32 {
     fn sq_euclidean(a: &[Self], b: &[Self]) -> f32 {
-        sq_euclidean(a, b)
+        use simsimd::SpatialSimilarity;
+        f32::sqeuclidean(a, b).unwrap().to_f32().unwrap()
     }
 }
 
