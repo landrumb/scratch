@@ -32,9 +32,7 @@ pub fn brute_force(query: &[f32], points: &[f32]) -> Vec<(IndexT, f32)> {
         .map(|i| {
             (
                 i as IndexT,
-                euclidean(query, &points[i * dim..(i + 1) * dim], dim)
-                    .to_f32()
-                    .unwrap(),
+                euclidean(query, &points[i * dim..(i + 1) * dim]),
             )
         })
         .collect();
@@ -134,9 +132,7 @@ impl<'a> IVFIndex<'a> {
                 let idx = i as IndexT;
                 (
                     idx,
-                    euclidean(query, self.get_representative(i), self.dataset.dim)
-                        .to_f32()
-                        .unwrap(),
+                    euclidean(query, self.get_representative(i)),
                 )
             })
             .collect::<Vec<(IndexT, f32)>>();

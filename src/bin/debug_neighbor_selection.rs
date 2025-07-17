@@ -40,7 +40,7 @@ fn main() {
     println!("'Nearest neighbor' to point {}: {:?}", center_id, faux_nearest);
     println!("compare_internal of point {} with its 'nearest neighbor' {}: {}", center_id, faux_nearest.0, dataset.compare_internal(center_id as usize, faux_nearest.0 as usize));
     println!("compare of point {} with its 'nearest neighbor' {}: {}", center_id, faux_nearest.0, dataset.compare(dataset.get(center_id as usize), faux_nearest.1 as usize));
-    println!("euclidean of point {} with its 'nearest neighbor' {}: {}", center_id, faux_nearest.0, euclidean(dataset.get(center_id as usize), dataset.get(faux_nearest.0 as usize), dataset.dim));
+    println!("euclidean of point {} with its 'nearest neighbor' {}: {}", center_id, faux_nearest.0, euclidean(dataset.get(center_id as usize), dataset.get(faux_nearest.0 as usize)));
 
     println!("Vector for point {}: {:?}", center_id, dataset.get(center_id as usize));
     println!("Vector for 'nearest neighbor' {}: {:?}", faux_nearest.0, dataset.get(faux_nearest.0 as usize));
