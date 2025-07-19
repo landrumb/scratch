@@ -1,19 +1,14 @@
-use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
 
 use scratch::data_handling::dataset::VectorDataset;
+use scratch::util::duplicates::duplicate_sets_f32;
 
 fn count_duplicates(dataset: &VectorDataset<f32>) -> usize {
-    let mut seen: HashSet<Vec<u32>> = HashSet::new();
-    let mut duplicates = 0;
-    for i in 0..dataset.n {
-        let bits: Vec<u32> = dataset.get(i).iter().map(|&v| v.to_bits()).collect();
-        if !seen.insert(bits) {
-            duplicates += 1;
-        }
-    }
-    duplicates
+    duplicate_sets_f32(dataset)
+        .iter()
+        .map(|s| s.len())
+        .sum()
 }
 
 fn main() {
