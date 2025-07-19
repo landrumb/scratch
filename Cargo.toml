@@ -84,3 +84,8 @@ verbose_kmeans = []
 verbose_kmt = []
 python = ["dep:pyo3", "dep:numpy"]
 numpy = ["dep:numpy"]
+
+[[bin]]
+name = "find_duplicates"
+path = "src/bin/find_duplicates.rs"
+
