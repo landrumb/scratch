@@ -120,6 +120,27 @@ where
         let new_n = data.len() / self.dim;
         VectorDataset::new(data.into_boxed_slice(), new_n, self.dim)
     }
+
+pub fn write_fbin(&self, path: &Path) -> std::io::Result<()> {
+        use std::fs::File;
+        use std::io::{BufWriter, Write};
+
+        let file = File::create(path)?;
+        let mut writer = BufWriter::new(file);
+
+        // Write dimensions
+        writer.write_all(&(self.n as u32).to_le_bytes())?;
+        writer.write_all(&(self.dim as u32).to_le_bytes())?;
+
+        // Write data
+        for value in &*self.data {
+            writer.write_all(unsafe {
+                std::slice::from_raw_parts(value as *const T as *const u8, std::mem::size_of::<T>())
+            })?;
+        }
+
+        Ok(())
+    }
 }
 
 // impl<T:Numeric> Iterator for VectorDataset<T> {

@@ -2,13 +2,17 @@ use std::fs;
 use std::path::Path;
 
 use scratch::data_handling::dataset::VectorDataset;
-use scratch::util::duplicates::duplicate_sets_f32;
+use scratch::util::duplicates::{duplicate_sets};
 
-fn count_duplicates(dataset: &VectorDataset<f32>) -> usize {
-    duplicate_sets_f32(dataset)
+fn count_duplicates(dataset: &VectorDataset<f32>, radius: Option<f64>) -> (usize, usize) {
+    let duplicate_sets = duplicate_sets(dataset, radius);
+    let total_duplicates = duplicate_sets
         .iter()
-        .map(|s| s.len())
-        .sum()
+        .filter(|set| set.len() > 1)
+        .map(|set| set.len())
+        .sum();
+    let num_sets = duplicate_sets.len();
+    (total_duplicates, num_sets)
 }
 
 fn main() {
@@ -29,10 +33,12 @@ fn main() {
 
         let base_path = dataset_path.join("base.fbin");
         if base_path.exists() {
+            println!("  loading base.fbin...");
             match VectorDataset::<f32>::from_file(&base_path) {
                 Ok(dataset) => {
-                    let dup = count_duplicates(&dataset);
-                    println!("  base.fbin duplicates: {}", dup);
+                    println!("  base.fbin loaded, {} vectors", dataset.n);
+                    let (dup, num_sets) = count_duplicates(&dataset, None);
+                    println!("  base.fbin duplicates: {} ({:.2}%, {} sets)", dup, dup as f32 * 100.0 / dataset.n as f32, num_sets);
                 }
                 Err(e) => println!("  failed to load base.fbin: {}", e),
             }
@@ -44,7 +50,7 @@ fn main() {
         if query_path.exists() {
             match VectorDataset::<f32>::from_file(&query_path) {
                 Ok(dataset) => {
-                    let dup = count_duplicates(&dataset);
+                    let (dup, _) = count_duplicates(&dataset, None);
                     println!("  query.fbin duplicates: {}", dup);
                 }
                 Err(e) => println!("  failed to load query.fbin: {}", e),
