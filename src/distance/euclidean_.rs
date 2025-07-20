@@ -76,18 +76,22 @@ impl SqEuclidean for f32 {
 
 impl SqEuclidean for f64 {
     fn sq_euclidean(a: &[Self], b: &[Self]) -> f32 {
-        sq_euclidean(a, b)
+        use simsimd::SpatialSimilarity;
+        f64::sqeuclidean(a, b).unwrap().to_f32().unwrap()
     }
 }
 
 impl SqEuclidean for i32 {
     fn sq_euclidean(a: &[Self], b: &[Self]) -> f32 {
-        sq_euclidean(a, b)
+        let a: Vec<f32> = a.iter().map(|&x| x as f32).collect();
+        let b: Vec<f32> = b.iter().map(|&x| x as f32).collect();
+        sq_euclidean(&a, &b)
     }
 }
 
 impl SqEuclidean for i8 {
     fn sq_euclidean(a: &[Self], b: &[Self]) -> f32 {
-        sq_euclidean(a, b)
+        use simsimd::SpatialSimilarity;
+        i8::sqeuclidean(a, b).unwrap().to_f32().unwrap()
     }
 }
