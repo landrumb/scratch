@@ -1,5 +1,5 @@
-use std::env::args;
-use std::path::Path;
+use clap::{Arg, Command};
+use std::path::PathBuf;
 use std::time::Instant;
 
 use rand_distr::num_traits::ToPrimitive;
@@ -9,72 +9,115 @@ use scratch::data_handling::dataset::VectorDataset;
 use scratch::data_handling::dataset_traits::Dataset;
 use scratch::data_handling::fbin::read_fbin;
 use scratch::graph::IndexT;
+use scratch::util::dataset::infer_dataset_paths;
 use scratch::util::ground_truth::GroundTruth;
 use scratch::util::recall::recall;
 
 fn main() {
-    // Print usage if --help is specified
-    if args().any(|arg| arg == "--help" || arg == "-h") {
-        println!("Usage: build_kmt [data_path] [query_path] [gt_path] [branching_factor] [max_leaf_size] [max_iterations] [epsilon] [spillover] [beam_width]");
-        println!("  data_path: Path to base.fbin file (default: data/word2vec-google-news-300_50000_lowercase/base.fbin)");
-        println!("  query_path: Path to query.fbin file (default: data/word2vec-google-news-300_50000_lowercase/query.fbin)");
-        println!("  gt_path: Path to ground truth file (default: data/word2vec-google-news-300_50000_lowercase/GT)");
-        println!("  branching_factor: Number of clusters per level (default: 5)");
-        println!("  max_leaf_size: Maximum number of points in a leaf (default: 200)");
-        println!("  max_iterations: Maximum K-means iterations (default: 10)");
-        println!("  epsilon: Convergence threshold (default: 0.01)");
-        println!("  spillover: Number of nearest centroids to assign each point to (default: 0/1 = no spillover)");
-        println!(
-            "  beam_width: Number of paths to explore when querying (default: 0 = standard query)"
-        );
-        println!(
-            "\nHigher spillover values increase recall at the cost of index size and query time."
-        );
-        println!(
-            "A non-zero beam_width enables beam search querying instead of standard querying."
-        );
-        return;
-    }
+    let matches = Command::new("build_kmt")
+        .arg(
+            Arg::new("dataset")
+                .long("dataset")
+                .short('d')
+                .help("Dataset name or directory")
+                .required(true),
+        )
+        .arg(
+            Arg::new("base")
+                .long("base")
+                .value_name("FILE")
+                .help("Path to base.fbin"),
+        )
+        .arg(
+            Arg::new("query")
+                .long("query")
+                .value_name("FILE")
+                .help("Path to query.fbin"),
+        )
+        .arg(
+            Arg::new("gt")
+                .long("gt")
+                .value_name("FILE")
+                .help("Path to ground truth file"),
+        )
+        .arg(
+            Arg::new("branching_factor")
+                .long("branching-factor")
+                .short('b')
+                .default_value("5"),
+        )
+        .arg(
+            Arg::new("max_leaf_size")
+                .long("max-leaf-size")
+                .default_value("200"),
+        )
+        .arg(
+            Arg::new("max_iterations")
+                .long("max-iterations")
+                .default_value("10"),
+        )
+        .arg(Arg::new("epsilon").long("epsilon").default_value("0.01"))
+        .arg(Arg::new("spillover").long("spillover").default_value("0"))
+        .arg(Arg::new("beam_width").long("beam-width").default_value("0"))
+        .get_matches();
 
-    let default_data_file = String::from("data/word2vec-google-news-300_50000_lowercase/base.fbin");
-    let default_query_file =
-        String::from("data/word2vec-google-news-300_50000_lowercase/query.fbin");
-    let default_gt_file = String::from("data/word2vec-google-news-300_50000_lowercase/GT");
+    let dataset = matches.get_one::<String>("dataset").unwrap();
+    let inferred = infer_dataset_paths(dataset);
 
-    // Parse arguments
-    let data_path_arg = args().nth(1).unwrap_or(default_data_file);
-    let data_path = Path::new(&data_path_arg);
+    let data_path: PathBuf = matches
+        .get_one::<String>("base")
+        .map(PathBuf::from)
+        .unwrap_or(inferred.base);
 
-    let query_path_arg = args().nth(2).unwrap_or(default_query_file);
-    let query_path = Path::new(&query_path_arg);
+    let query_path: PathBuf = matches
+        .get_one::<String>("query")
+        .map(PathBuf::from)
+        .unwrap_or(inferred.query);
 
-    let gt_path_arg = args().nth(3).unwrap_or(default_gt_file);
-    let gt_path = Path::new(&gt_path_arg);
+    let gt_path: PathBuf = matches
+        .get_one::<String>("gt")
+        .map(PathBuf::from)
+        .unwrap_or(inferred.gt);
 
-    // Parse KMT parameters with defaults from original code
-    let branching_factor_arg = args().nth(4).unwrap_or("10".to_string());
-    let branching_factor: usize = branching_factor_arg.parse().unwrap_or(5);
+    let branching_factor: usize = matches
+        .get_one::<String>("branching_factor")
+        .unwrap()
+        .parse()
+        .unwrap_or(5);
 
-    let max_leaf_size_arg = args().nth(5).unwrap_or("200".to_string());
-    let max_leaf_size: usize = max_leaf_size_arg.parse().unwrap_or(2000);
+    let max_leaf_size: usize = matches
+        .get_one::<String>("max_leaf_size")
+        .unwrap()
+        .parse()
+        .unwrap_or(200);
 
-    let max_iterations_arg = args().nth(6).unwrap_or("10".to_string());
-    let max_iterations: usize = max_iterations_arg.parse().unwrap_or(10);
+    let max_iterations: usize = matches
+        .get_one::<String>("max_iterations")
+        .unwrap()
+        .parse()
+        .unwrap_or(10);
 
-    let epsilon_arg = args().nth(7).unwrap_or("0.01".to_string());
-    let epsilon: f64 = epsilon_arg.parse().unwrap_or(0.01);
+    let epsilon: f64 = matches
+        .get_one::<String>("epsilon")
+        .unwrap()
+        .parse()
+        .unwrap_or(0.01);
 
-    // Add spillover parameter (default: 0 = no spillover)
-    let spillover_arg = args().nth(8).unwrap_or("3".to_string());
-    let spillover: usize = spillover_arg.parse().unwrap_or(0);
+    let spillover: usize = matches
+        .get_one::<String>("spillover")
+        .unwrap()
+        .parse()
+        .unwrap_or(0);
 
-    // Add beam search width parameter (default: 0 = use standard query)
-    let beam_width_arg = args().nth(9).unwrap_or("100".to_string());
-    let beam_width: usize = beam_width_arg.parse().unwrap_or(0);
+    let beam_width: usize = matches
+        .get_one::<String>("beam_width")
+        .unwrap()
+        .parse()
+        .unwrap_or(0);
 
     // Load dataset
     let mut start = Instant::now();
-    let dataset: VectorDataset<f32> = read_fbin(data_path);
+    let dataset: VectorDataset<f32> = read_fbin(&data_path);
     let elapsed = start.elapsed();
     println!(
         "read dataset in {}.{:03} seconds",
@@ -110,7 +153,7 @@ fn main() {
     println!("Dataset size: {}", dataset.size());
 
     // Load queries
-    let queries: VectorDataset<f32> = read_fbin(query_path);
+    let queries: VectorDataset<f32> = read_fbin(&query_path);
 
     // Run queries - use beam search if beam_width > 0
     start = Instant::now();
@@ -147,7 +190,7 @@ fn main() {
     );
 
     // Load ground truth and compute recall
-    let gt = GroundTruth::read(gt_path);
+    let gt = GroundTruth::read(&gt_path);
     let kmt_recall = (0..kmt_results.len())
         .map(|i| recall(kmt_results[i].as_slice(), gt.get_neighbors(i)))
         .sum::<f64>()

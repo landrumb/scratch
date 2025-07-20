@@ -1,4 +1,4 @@
-use std::env;
+use clap::{Arg, Command};
 use std::path::Path;
 use std::process;
 use std::time::Instant;
@@ -8,15 +8,31 @@ use scratch::graph::ClassicGraph;
 /// This utility demonstrates reading a graph from one file and writing it to another
 /// It helps test the roundtrip functionality and provides information about both processes
 fn main() {
-    // Get the filename from command-line arguments
-    let args: Vec<String> = env::args().collect();
-    if args.len() < 3 {
-        eprintln!("Usage: {} <input_graph_file> <output_graph_file>", args[0]);
-        process::exit(1);
-    }
+    let matches = Command::new("graph_roundtrip")
+        .arg(
+            Arg::new("input")
+                .long("input")
+                .short('i')
+                .help("Input graph file")
+                .required(true),
+        )
+        .arg(
+            Arg::new("output")
+                .long("output")
+                .short('o')
+                .help("Output graph file")
+                .required(true),
+        )
+        .arg(
+            Arg::new("verify")
+                .long("verify")
+                .action(clap::ArgAction::SetTrue)
+                .help("Verify written file"),
+        )
+        .get_matches();
 
-    let input_file = &args[1];
-    let output_file = &args[2];
+    let input_file = matches.get_one::<String>("input").unwrap();
+    let output_file = matches.get_one::<String>("output").unwrap();
 
     if !Path::new(input_file).exists() {
         eprintln!("Input file does not exist: {}", input_file);
@@ -85,7 +101,7 @@ fn main() {
     println!("Roundtrip complete!");
 
     // Optional: verify the written file
-    if args.len() > 3 && args[3] == "--verify" {
+    if matches.get_flag("verify") {
         println!("\nVerifying written file...");
 
         let start_verify = Instant::now();

@@ -1,19 +1,22 @@
+use clap::{Arg, Command};
 use std::collections::HashMap;
-use std::env;
 use std::process;
 use std::time::Instant;
 
 use scratch::graph::ClassicGraph;
 
 fn main() {
-    // Get the filename from command-line arguments
-    let args: Vec<String> = env::args().collect();
-    if args.len() < 2 {
-        eprintln!("Usage: {} <graph_file>", args[0]);
-        process::exit(1);
-    }
+    let matches = Command::new("graph_info")
+        .arg(
+            Arg::new("graph")
+                .long("graph")
+                .short('g')
+                .help("Path to graph file")
+                .required(true),
+        )
+        .get_matches();
 
-    let graph_file = &args[1];
+    let graph_file = matches.get_one::<String>("graph").unwrap();
     println!("Reading graph from file: {}", graph_file);
 
     // Measure the time it takes to read the graph
