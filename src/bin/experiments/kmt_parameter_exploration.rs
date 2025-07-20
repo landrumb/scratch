@@ -1,7 +1,9 @@
+use clap::{Arg, Command};
 use std::{fs::OpenOptions, io::Write, path::Path, time::Instant};
 
 use rand_distr::num_traits::ToPrimitive;
 use rayon::prelude::*;
+use scratch::util::dataset::infer_dataset_paths;
 use scratch::{
     constructions::kmeans_tree::KMeansTree,
     data_handling::{dataset::VectorDataset, dataset_traits::Dataset, fbin::read_fbin},
@@ -9,22 +11,46 @@ use scratch::{
 };
 
 fn main() {
-    // Default parameters (same as in the shell script)
-    let data_path = "data/word2vec-google-news-300_50000_lowercase/base.fbin";
-    let query_path = "data/word2vec-google-news-300_50000_lowercase/query.fbin";
-    let gt_path = "data/word2vec-google-news-300_50000_lowercase/GT";
+    let matches = Command::new("kmt_parameter_exploration")
+        .arg(
+            Arg::new("dataset")
+                .long("dataset")
+                .short('d')
+                .help("Dataset name or directory")
+                .required(true),
+        )
+        .arg(
+            Arg::new("branching_factor")
+                .long("branching-factor")
+                .short('b')
+                .required(true),
+        )
+        .arg(
+            Arg::new("spillover")
+                .long("spillover")
+                .short('s')
+                .required(true),
+        )
+        .get_matches();
 
-    // Parse KMT parameters from command line args
-    let args: Vec<String> = std::env::args().collect();
+    let dataset = matches.get_one::<String>("dataset").unwrap();
+    let inferred = infer_dataset_paths(dataset);
 
-    if args.len() < 3 {
-        println!("Usage: beam_recall [branching_factor] [spillover]");
-        println!("Example: beam_recall 10 3");
-        return;
-    }
+    let data_path = inferred.base;
+    let query_path = inferred.query;
+    let gt_path = inferred.gt;
 
-    let branching_factor: usize = args[1].parse().expect("Invalid branching factor");
-    let spillover: usize = args[2].parse().expect("Invalid spillover");
+    let branching_factor: usize = matches
+        .get_one::<String>("branching_factor")
+        .unwrap()
+        .parse()
+        .expect("Invalid branching factor");
+
+    let spillover: usize = matches
+        .get_one::<String>("spillover")
+        .unwrap()
+        .parse()
+        .expect("Invalid spillover");
 
     // Fixed parameters (could be made configurable if needed)
     let max_leaf_size = 200;
@@ -51,7 +77,7 @@ fn main() {
 
     // Load dataset
     let start = Instant::now();
-    let dataset: VectorDataset<f32> = read_fbin(Path::new(data_path));
+    let dataset: VectorDataset<f32> = read_fbin(&data_path);
     let elapsed = start.elapsed();
     println!(
         "Read dataset in {}.{:03} seconds",
@@ -60,10 +86,10 @@ fn main() {
     );
 
     // Load queries
-    let queries: VectorDataset<f32> = read_fbin(Path::new(query_path));
+    let queries: VectorDataset<f32> = read_fbin(&query_path);
 
     // Load ground truth
-    let gt = GroundTruth::read(Path::new(gt_path));
+    let gt = GroundTruth::read(&gt_path);
 
     // Build KMeansTree index once
     println!(
