@@ -130,10 +130,7 @@ impl<'a> IVFIndex<'a> {
             .into_par_iter()
             .map(|i| {
                 let idx = i as IndexT;
-                (
-                    idx,
-                    euclidean(query, self.get_representative(i)),
-                )
+                (idx, euclidean(query, self.get_representative(i)))
             })
             .collect::<Vec<(IndexT, f32)>>();
 

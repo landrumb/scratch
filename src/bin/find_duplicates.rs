@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 
 use scratch::data_handling::dataset::VectorDataset;
-use scratch::util::duplicates::{duplicate_sets};
+use scratch::util::duplicates::duplicate_sets;
 
 fn count_duplicates(dataset: &VectorDataset<f32>, radius: Option<f64>) -> (usize, usize) {
     let duplicate_sets = duplicate_sets(dataset, radius);
@@ -38,7 +38,12 @@ fn main() {
                 Ok(dataset) => {
                     println!("  base.fbin loaded, {} vectors", dataset.n);
                     let (dup, num_sets) = count_duplicates(&dataset, None);
-                    println!("  base.fbin duplicates: {} ({:.2}%, {} sets)", dup, dup as f32 * 100.0 / dataset.n as f32, num_sets);
+                    println!(
+                        "  base.fbin duplicates: {} ({:.2}%, {} sets)",
+                        dup,
+                        dup as f32 * 100.0 / dataset.n as f32,
+                        num_sets
+                    );
                 }
                 Err(e) => println!("  failed to load base.fbin: {}", e),
             }

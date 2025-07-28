@@ -29,12 +29,12 @@ impl<T: Numeric> DistanceMatrix<T> {
         DistanceMatrix {
             dataset,
             distances,
-            n
+            n,
         }
     }
 
     pub fn new_with_progress_bar(dataset: Box<dyn Dataset<T>>) -> DistanceMatrix<T> {
-        use indicatif::{ProgressBar, ProgressStyle, ParallelProgressIterator};
+        use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
 
         let n = dataset.size();
 
@@ -54,7 +54,6 @@ impl<T: Numeric> DistanceMatrix<T> {
         );
         pb.set_message("Building distance matrix");
 
-
         distances
             .par_iter_mut()
             .progress_with(pb.clone())
@@ -67,15 +66,19 @@ impl<T: Numeric> DistanceMatrix<T> {
                         .collect::<Vec<f32>>(),
                 );
             });
-        
+
         let elapsed = pb.elapsed();
 
-        println!("Distance matrix built in {}.{} seconds", elapsed.as_secs(), elapsed.subsec_millis());
+        println!(
+            "Distance matrix built in {}.{} seconds",
+            elapsed.as_secs(),
+            elapsed.subsec_millis()
+        );
 
         DistanceMatrix {
             dataset,
             distances,
-            n
+            n,
         }
     }
 
@@ -91,7 +94,7 @@ impl<T: Numeric> DistanceMatrix<T> {
     }
 }
 
-impl <T: Numeric> Dataset<T> for DistanceMatrix<T> {
+impl<T: Numeric> Dataset<T> for DistanceMatrix<T> {
     fn compare_internal(&self, i: usize, j: usize) -> f64 {
         self.get_distance(i, j) as f64
     }

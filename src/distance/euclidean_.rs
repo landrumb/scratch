@@ -15,7 +15,7 @@ use rand_distr::num_traits::ToPrimitive;
 /// let d = [0.0, 1.0, 0.0, 0.0];
 /// let distance2 = crate::scratch::distance::euclidean(&c, &d);
 /// assert!((distance2 as f64 - f64::sqrt(2.0)).abs() < 1e-6);
-/// 
+///
 /// let e = [3.0, 4.0];
 /// let f = [7.0, 1.0];
 /// let distance3 = crate::scratch::distance::euclidean(&e, &f);
@@ -62,7 +62,7 @@ pub trait SqEuclidean {
     fn euclidean(a: &[Self], b: &[Self]) -> f32
     where
         Self: Sized,
-        {
+    {
         f32::sqrt(Self::sq_euclidean(a, b))
     }
 }

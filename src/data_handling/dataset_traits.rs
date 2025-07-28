@@ -2,14 +2,12 @@
 
 use std::ops::Sub;
 
-
 pub trait Numeric: Copy + Into<f64> + Sub<Output = Self> + Default + Send + Sync {}
 
 impl Numeric for f32 {}
 impl Numeric for f64 {}
 impl Numeric for i32 {}
 impl Numeric for i8 {}
-
 
 pub trait Dataset<T>: Send + Sync {
     fn compare_internal(&self, i: usize, j: usize) -> f64; // this probably should take reference args(?)

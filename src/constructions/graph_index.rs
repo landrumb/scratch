@@ -1,6 +1,9 @@
 //! A generic graph index container
 
-use crate::{data_handling::dataset_traits::Dataset, graph::{beam_search, Graph, IndexT}};
+use crate::{
+    data_handling::dataset_traits::Dataset,
+    graph::{beam_search, Graph, IndexT},
+};
 
 use super::VectorIndex;
 
@@ -16,7 +19,11 @@ impl<'graph_lifetime, 'dataset_lifetime, T> GraphIndex<'graph_lifetime, 'dataset
         dataset: &'dataset_lifetime dyn Dataset<T>,
         root: IndexT,
     ) -> Self {
-        GraphIndex { graph, dataset, root }
+        GraphIndex {
+            graph,
+            dataset,
+            root,
+        }
     }
 }
 

@@ -4,10 +4,7 @@ use std::collections::{HashMap, HashSet};
 
 use rand::seq::SliceRandom;
 
-use crate::{
-    data_handling::dataset_traits::Dataset,
-    graph::IndexT,
-};
+use crate::{data_handling::dataset_traits::Dataset, graph::IndexT};
 
 /// robust prune without a degree bound
 pub fn robust_prune_unbounded<T>(
@@ -56,7 +53,6 @@ pub fn robust_prune<T>(
     new_neighbors
 }
 
-
 pub struct PairwiseDistancesHandler {
     id_distance_pairs: Vec<Box<[(IndexT, f32)]>>,
 }
@@ -73,9 +69,7 @@ impl PairwiseDistancesHandler {
             })
             .collect();
 
-        PairwiseDistancesHandler {
-            id_distance_pairs,
-        }
+        PairwiseDistancesHandler { id_distance_pairs }
     }
 
     /// returns a box with the ids of the candidates that are within distance d of i
@@ -121,7 +115,7 @@ fn brute_force_alpha_set(
 }
 
 /// returns the set of candidates that would be pruned by each point with a given alpha
-/// 
+///
 /// In the current implementation, this requires materializing the sorted distance matrix.
 /// might be worth making a version of this where the candidates and universe are distinct
 pub fn materialize_alpha_sets(
@@ -136,7 +130,7 @@ pub fn materialize_alpha_sets(
     if candidates.is_empty() {
         return Vec::new();
     }
-    
+
     for i in candidates.iter() {
         alpha_sets.insert(*i, HashSet::new());
     }
@@ -146,18 +140,21 @@ pub fn materialize_alpha_sets(
         // the distance from 40 to 46 is plainly not so large
         let dist = dataset.compare_internal(center as usize, *point_to_cover as usize) as f32;
 
-
-        let memberships = pairwise_distances.closer_than(*point_to_cover, dist / alpha).to_vec();
+        let memberships = pairwise_distances
+            .closer_than(*point_to_cover, dist / alpha)
+            .to_vec();
         for would_be_neighbor in memberships.iter() {
             if *would_be_neighbor != center {
-                alpha_sets.get_mut(would_be_neighbor).unwrap().insert(*point_to_cover);
+                alpha_sets
+                    .get_mut(would_be_neighbor)
+                    .unwrap()
+                    .insert(*point_to_cover);
             }
         }
     }
 
-
-    alpha_sets.
-        into_iter()
+    alpha_sets
+        .into_iter()
         .collect::<Vec<(IndexT, HashSet<IndexT>)>>()
 }
 
@@ -177,7 +174,8 @@ pub fn naive_semi_greedy_prune(
         return new_neighbors;
     }
 
-    let mut alpha_sets = materialize_alpha_sets(center, candidates, alpha, dataset, pairwise_distances);
+    let mut alpha_sets =
+        materialize_alpha_sets(center, candidates, alpha, dataset, pairwise_distances);
 
     // Sort alpha sets by size ascending
     alpha_sets.sort_by(|a, b| a.1.len().partial_cmp(&b.1.len()).unwrap());
@@ -187,9 +185,7 @@ pub fn naive_semi_greedy_prune(
         new_neighbors.push(i);
 
         // remove all candidates that are covered by the new neighbor
-        alpha_sets.retain(|(j, _)| {
-            !covered_set.contains(j)
-        });
+        alpha_sets.retain(|(j, _)| !covered_set.contains(j));
 
         // remove already pruned points from candidate lists
         for set in alpha_sets.iter_mut() {
@@ -214,12 +210,14 @@ pub fn incremental_greedy(
     let mut rng = rand::rng();
     // order in which we sample voters
     // worth exploring just "sampling" in order of distance from the center
-    let mut permutation = (0..center as usize).chain((center as usize + 1)..candidates.len()).collect::<Vec<usize>>();
+    let mut permutation = (0..center as usize)
+        .chain((center as usize + 1)..candidates.len())
+        .collect::<Vec<usize>>();
     permutation.shuffle(&mut rng);
 
     let mut voters: HashSet<IndexT> = HashSet::new();
     let mut votes: Vec<usize> = vec![0; candidates.len() + 1]; // because the center isn't a candidate
-    
+
     let mut neighbors: Vec<IndexT> = seed_neighbors.unwrap_or(&Vec::new()).to_vec();
 
     // threshold is the natural log of the number of candidates
@@ -227,13 +225,16 @@ pub fn incremental_greedy(
 
     /// returns the index of the center, and a boolean indicating if the point was covered
     fn find_center_index(
-        point : IndexT,
+        point: IndexT,
         center: IndexT,
         pairwise_distances: &PairwiseDistancesHandler,
         neighbors: &Vec<IndexT>,
     ) -> (usize, bool) {
         let mut result: (i64, bool) = (-1, false);
-        for (i, (vertex, _)) in pairwise_distances.id_distance_pairs[point as usize].iter().enumerate() {
+        for (i, (vertex, _)) in pairwise_distances.id_distance_pairs[point as usize]
+            .iter()
+            .enumerate()
+        {
             if *vertex == center {
                 result = (i as i64, result.1);
                 break;
@@ -249,14 +250,18 @@ pub fn incremental_greedy(
     for voter in permutation.iter() {
         // check if voter is covered
         // we just walk through the sorted pairwise distances from the voter and see if we get a neighbor or the center first
-        let (center_index, covered) = find_center_index(*voter as IndexT, center, pairwise_distances, &neighbors);
+        let (center_index, covered) =
+            find_center_index(*voter as IndexT, center, pairwise_distances, &neighbors);
         if covered {
             continue;
         }
         // if the voter is not covered, we add it to the voters
         voters.insert(*voter as IndexT);
         // and we increment the votes for all candidates which are not already neighbors
-        for (j, _) in pairwise_distances.id_distance_pairs[*voter].iter().take(center_index) {
+        for (j, _) in pairwise_distances.id_distance_pairs[*voter]
+            .iter()
+            .take(center_index)
+        {
             if !neighbors.contains(j) && *j != center {
                 votes[*j as usize] += 1;
             }
@@ -267,8 +272,12 @@ pub fn incremental_greedy(
         // voters are removed, we can ignore wanting to add multiple neighbors at once
         // because anything else that just crossed the threshold will be knocked back down below the
         // threshold
-        let (new_neighbor, &n_votes) = votes.iter().enumerate().max_by(|a, b| a.1.cmp(b.1)).unwrap();
-        
+        let (new_neighbor, &n_votes) = votes
+            .iter()
+            .enumerate()
+            .max_by(|a, b| a.1.cmp(b.1))
+            .unwrap();
+
         if n_votes >= threshold {
             // add j as a neighbor
             assert!(!neighbors.contains(&(new_neighbor as IndexT)));
@@ -279,12 +288,20 @@ pub fn incremental_greedy(
             let new_neighbor_as_vec = vec![new_neighbor as IndexT];
             for tentative_voter in voters.iter() {
                 // check if the voter is covered by j
-                let (j_index, covered) = find_center_index(*tentative_voter, center as IndexT, pairwise_distances, &new_neighbor_as_vec);
+                let (j_index, covered) = find_center_index(
+                    *tentative_voter,
+                    center as IndexT,
+                    pairwise_distances,
+                    &new_neighbor_as_vec,
+                );
                 if covered {
                     // remove the voter from the voters (lazily)
                     covered_voters_to_remove.push(*tentative_voter as IndexT);
                     // decrement the votes for elements of the hitting set of voter
-                    for (k, _) in pairwise_distances.id_distance_pairs[*tentative_voter as usize].iter().take(j_index) {
+                    for (k, _) in pairwise_distances.id_distance_pairs[*tentative_voter as usize]
+                        .iter()
+                        .take(j_index)
+                    {
                         if !neighbors.contains(k) && *k != center {
                             // decrement the votes for the candidate
                             votes[*k as usize] -= 1;
@@ -307,22 +324,34 @@ pub fn incremental_greedy(
 
     while !voters.is_empty() {
         // find the candidate with the most votes
-        let (new_neighbor, &n_votes) = votes.iter().enumerate().max_by(|a, b| a.1.cmp(b.1)).unwrap();
-        
+        let (new_neighbor, &n_votes) = votes
+            .iter()
+            .enumerate()
+            .max_by(|a, b| a.1.cmp(b.1))
+            .unwrap();
+
         assert!(!neighbors.contains(&(new_neighbor as IndexT)));
 
         let mut covered_voters_to_remove: Vec<IndexT> = Vec::with_capacity(n_votes);
-        
+
         // remove points from voters that are covered by j, and decrement the votes accordingly
         let new_neighbor_as_vec = vec![new_neighbor as IndexT];
         for tentative_voter in voters.iter() {
             // check if the voter is covered by j
-            let (j_index, covered) = find_center_index(*tentative_voter, center as IndexT, pairwise_distances, &new_neighbor_as_vec);
+            let (j_index, covered) = find_center_index(
+                *tentative_voter,
+                center as IndexT,
+                pairwise_distances,
+                &new_neighbor_as_vec,
+            );
             if covered {
                 // remove the voter from the voters (lazily)
                 covered_voters_to_remove.push(*tentative_voter as IndexT);
                 // decrement the votes for elements of the hitting set of voter
-                for (k, _) in pairwise_distances.id_distance_pairs[*tentative_voter as usize].iter().take(j_index) {
+                for (k, _) in pairwise_distances.id_distance_pairs[*tentative_voter as usize]
+                    .iter()
+                    .take(j_index)
+                {
                     if !neighbors.contains(k) && *k != center {
                         // decrement the votes for the candidate
                         votes[*k as usize] -= 1;
@@ -337,7 +366,7 @@ pub fn incremental_greedy(
         }
 
         neighbors.push(new_neighbor as IndexT);
-    }    
+    }
 
     neighbors
 }

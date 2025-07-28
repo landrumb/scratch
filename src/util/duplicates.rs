@@ -1,9 +1,5 @@
-use std::collections::{HashMap, HashSet};
-use std::hash::Hash;
-use std::fmt::Debug;
-use indicatif::ProgressBar;
 use rand::seq::IndexedRandom;
-use rand::{Rng, seq::SliceRandom};
+use std::collections::HashSet;
 
 use crate::data_handling::dataset::VectorDataset;
 use crate::data_handling::dataset_traits::{Dataset, Numeric};
@@ -30,7 +26,11 @@ where
 }
 
 /// recursive helper function to find duplicates in a subset of the dataset
-fn subset_duplicates<T>(dataset: &VectorDataset<T>, indices: Vec<usize>, radius: f64) -> Vec<HashSet<usize>>
+fn subset_duplicates<T>(
+    dataset: &VectorDataset<T>,
+    indices: Vec<usize>,
+    radius: f64,
+) -> Vec<HashSet<usize>>
 where
     T: Numeric + SqEuclidean,
 {
@@ -41,13 +41,18 @@ where
 
     // splitting points
     // sampling w/o replacement
-    let sample = indices.choose_multiple(&mut rng, 2).cloned().collect::<Vec<_>>();
+    let sample = indices
+        .choose_multiple(&mut rng, 2)
+        .cloned()
+        .collect::<Vec<_>>();
     let left_point = sample[0];
     let right_point = sample[1];
 
     let partialities: Vec<f64> = indices
         .par_iter()
-        .map(|&i| dataset.compare_internal(i, left_point) - dataset.compare_internal(i, right_point))
+        .map(|&i| {
+            dataset.compare_internal(i, left_point) - dataset.compare_internal(i, right_point)
+        })
         .collect();
 
     let mut left_indices = Vec::new();
@@ -75,10 +80,14 @@ where
 }
 
 /// this is potentially approximate, but assumes equality is transitive, so might be wonky
-fn exhaustive_subset_duplicates<T>(dataset: &VectorDataset<T>, indices: Vec<usize>, radius: f64) -> Vec<HashSet<usize>>
+fn exhaustive_subset_duplicates<T>(
+    dataset: &VectorDataset<T>,
+    indices: Vec<usize>,
+    radius: f64,
+) -> Vec<HashSet<usize>>
 where
     T: Numeric + SqEuclidean,
-{   
+{
     let mut equality_dsu = DSU::new(indices.len());
     for (i_index, &i) in indices.iter().enumerate() {
         for (j_index, &j) in indices.iter().enumerate().skip(i_index + 1) {
@@ -88,17 +97,13 @@ where
         }
     }
 
-    equality_dsu.components().into_iter()
+    equality_dsu
+        .components()
+        .into_iter()
         .filter(|set| set.len() > 1)
-        .map(|set| {
-            set.into_iter()
-                .map(|i| indices[i])
-                .collect::<HashSet<_>>()
-        })
+        .map(|set| set.into_iter().map(|i| indices[i]).collect::<HashSet<_>>())
         .collect()
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -106,38 +111,30 @@ mod tests {
 
     #[test]
     fn finds_duplicate_sets() {
-        let data: Vec<f32> = vec![
-            1.0, 0.0,
-            0.5, 0.5,
-            1.0, 0.0,
-            0.5, 0.5,
-            2.0, 1.0,
-        ];
+        let data: Vec<f32> = vec![1.0, 0.0, 0.5, 0.5, 1.0, 0.0, 0.5, 0.5, 2.0, 1.0];
         let dataset = VectorDataset::new(data.into_boxed_slice(), 5, 2);
         let sets = duplicate_sets(&dataset, None);
         // Expect two duplicate sets: {0,2} and {1,3}
         assert_eq!(sets.len(), 2);
         for set in sets {
-            assert!(set == [0usize, 2].iter().cloned().collect::<HashSet<_>>()
-                || set == [1usize, 3].iter().cloned().collect::<HashSet<_>>());
+            assert!(
+                set == [0usize, 2].iter().cloned().collect::<HashSet<_>>()
+                    || set == [1usize, 3].iter().cloned().collect::<HashSet<_>>()
+            );
         }
     }
 
     #[test]
     fn finds_duplicate_sets_generic() {
-        let data: Vec<i32> = vec![
-            1, 0,
-            2, 2,
-            1, 0,
-            2, 2,
-            3, 1,
-        ];
+        let data: Vec<i32> = vec![1, 0, 2, 2, 1, 0, 2, 2, 3, 1];
         let dataset = VectorDataset::new(data.into_boxed_slice(), 5, 2);
         let sets = duplicate_sets(&dataset, None);
         assert_eq!(sets.len(), 2);
         for set in sets {
-            assert!(set == [0usize, 2].iter().cloned().collect::<HashSet<_>>()
-                || set == [1usize, 3].iter().cloned().collect::<HashSet<_>>());
+            assert!(
+                set == [0usize, 2].iter().cloned().collect::<HashSet<_>>()
+                    || set == [1usize, 3].iter().cloned().collect::<HashSet<_>>()
+            );
         }
     }
 }

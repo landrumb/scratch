@@ -1,4 +1,4 @@
-use std::collections::{HashSet, HashMap};
+use std::collections::{HashMap, HashSet};
 pub mod dataset;
 pub mod duplicates;
 pub mod ground_truth;
@@ -31,7 +31,9 @@ impl DSU {
     pub fn union(&mut self, x: usize, y: usize) {
         let mut a = self.find(x);
         let mut b = self.find(y);
-        if a == b { return; }
+        if a == b {
+            return;
+        }
 
         // attach smaller rank tree under the higher-rank one
         if self.rank[a] < self.rank[b] {

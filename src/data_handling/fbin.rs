@@ -48,7 +48,10 @@ pub fn read_fbin<T: Numeric + SqEuclidean>(path: &Path) -> VectorDataset<T> {
 }
 
 /// reads only a subset of the dataset from an fbin file, but is otherwise the same as `read_fbin`
-pub fn read_fbin_subset<T: Numeric + SqEuclidean>(path: &Path, subset_size: usize) -> VectorDataset<T> {
+pub fn read_fbin_subset<T: Numeric + SqEuclidean>(
+    path: &Path,
+    subset_size: usize,
+) -> VectorDataset<T> {
     let file = File::open(path).expect("could not open file");
     let mmap = unsafe { Mmap::map(&file).expect("could not mmap file") };
     let mut reader = BufReader::new(&*mmap);

@@ -236,7 +236,9 @@ impl<'a> KMeansTree<'a> {
             .collect();
 
         // Use the k parameter to limit results
-        let results = self.dataset.brute_force_boxed_subset(query, partition.iter().as_slice());
+        let results = self
+            .dataset
+            .brute_force_boxed_subset(query, partition.iter().as_slice());
         let results_vec: Vec<(IndexT, f32)> = results
             .iter()
             .take(k)
@@ -457,7 +459,9 @@ impl<'a> KMeansTree<'a> {
         all_candidates.dedup();
 
         // Perform brute force search on the combined partitions
-        let results = self.dataset.brute_force_boxed_subset(query, &all_candidates);
+        let results = self
+            .dataset
+            .brute_force_boxed_subset(query, &all_candidates);
 
         // Limit to k results
         let results_vec: Vec<(IndexT, f32)> = results

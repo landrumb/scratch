@@ -2,13 +2,15 @@
 
 use std::iter::once;
 
-use crate::{data_handling::dataset_traits::Dataset, graph::{beam_search_with_visited, IndexT, MutableGraph, VectorGraph}};
+use crate::{
+    data_handling::dataset_traits::Dataset,
+    graph::{beam_search_with_visited, IndexT, MutableGraph, VectorGraph},
+};
 
+use rand::rngs::SmallRng;
 use rand::seq::SliceRandom;
 use rand::SeedableRng;
-use rand::rngs::SmallRng;
 use rand_distr::num_traits::ToPrimitive;
-
 
 use super::neighbor_selection::robust_prune;
 
@@ -37,7 +39,9 @@ pub fn build_vamana_graph<T>(
 
     // randomized insertion order which does not include the root. Counterintuitively,
     // the insertion order goes backwards to facilitate breaking it off
-    let mut insertion_order = (0..root).chain((root + 1)..dataset.size() as IndexT).collect::<Vec<_>>();
+    let mut insertion_order = (0..root)
+        .chain((root + 1)..dataset.size() as IndexT)
+        .collect::<Vec<_>>();
     let mut rng = SmallRng::seed_from_u64(41901); // my birthday
     insertion_order.shuffle(&mut rng);
 
@@ -46,11 +50,18 @@ pub fn build_vamana_graph<T>(
     let kernel_size = dataset.size() - 1_usize;
 
     for i in insertion_order[0..kernel_size].iter() {
-        let (_, visited) = beam_search_with_visited(dataset.get(*i as usize), &graph, dataset, root, beam_width, limit);
+        let (_, visited) = beam_search_with_visited(
+            dataset.get(*i as usize),
+            &graph,
+            dataset,
+            root,
+            beam_width,
+            limit,
+        );
 
         // println!("point 0 edges: {:?}", graph.get_neighborhood(0));
 
-        // update neighborhood 
+        // update neighborhood
         let new_neighborhood = robust_prune(visited, alpha, dataset, degree_bound);
 
         graph.set_neighborhood(*i, &new_neighborhood);
@@ -68,14 +79,21 @@ pub fn build_vamana_graph<T>(
                 let candidates_with_distances = head_neighborhood
                     .iter()
                     .chain(once(i))
-                    .map(|&x| (x, dataset.compare_internal(j as usize, x as usize).to_f32().unwrap()))
+                    .map(|&x| {
+                        (
+                            x,
+                            dataset
+                                .compare_internal(j as usize, x as usize)
+                                .to_f32()
+                                .unwrap(),
+                        )
+                    })
                     .collect::<Vec<_>>();
 
-                
-                let new_head_neighborhood = robust_prune(candidates_with_distances, alpha, dataset, degree_bound);
+                let new_head_neighborhood =
+                    robust_prune(candidates_with_distances, alpha, dataset, degree_bound);
                 graph.set_neighborhood(j, &new_head_neighborhood);
             }
-            
         }
     }
 
@@ -86,7 +104,6 @@ pub fn build_vamana_graph<T>(
     // let batch_size = min(insertion_order.len() / MAX_BATCH_FRACTION, MAX_BATCH_SIZE);
 
     // insertion_order = insertion_order.split_off(min(KERNEL_SIZE, dataset.size() - 1 as usize));
-
 
     // // after building the kernel, we start inserting points in batches
     // while let Some(batch_indices) = insertion_order.iter().chunks(batch_size).into_iter().next() {
@@ -103,7 +120,7 @@ pub fn build_vamana_graph<T>(
     //             }
     //             graph.bulk_queue(*i, &new_neighbors);
     //         });
-        
+
     //     // process queued edges
     //     graph.preprocess_queues(degree_bound);
     //     let queued_edges = graph.get_queued_edges();

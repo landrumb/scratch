@@ -8,7 +8,6 @@ use crate::graph::{IndexT, VectorGraph};
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 
-
 /// constructs the slow preprocessing version of a vamana graph
 pub fn build_slow_preprocesssing(dataset: &dyn Dataset<f32>, alpha: f32) -> VectorGraph {
     let pb = ProgressBar::new(dataset.size() as u64);
@@ -24,7 +23,8 @@ pub fn build_slow_preprocesssing(dataset: &dyn Dataset<f32>, alpha: f32) -> Vect
         .into_par_iter()
         .progress_with(pb)
         .map(|i| {
-            let candidates = (0..i).chain((i + 1)..dataset.size())
+            let candidates = (0..i)
+                .chain((i + 1)..dataset.size())
                 .map(|j| {
                     let dist = dataset.compare_internal(i, j);
                     (j as IndexT, dist as f32)
@@ -40,12 +40,10 @@ pub fn build_slow_preprocesssing(dataset: &dyn Dataset<f32>, alpha: f32) -> Vect
     VectorGraph::new(neighborhoods)
 }
 
-pub fn build_global_local_graph<F>(
-    dataset: &dyn Dataset<f32>,
-    edge_selection_fn: F,
-) -> VectorGraph 
-where F: Fn(IndexT, &[IndexT]) -> Vec<IndexT> + Sync 
-    {
+pub fn build_global_local_graph<F>(dataset: &dyn Dataset<f32>, edge_selection_fn: F) -> VectorGraph
+where
+    F: Fn(IndexT, &[IndexT]) -> Vec<IndexT> + Sync,
+{
     let pb = ProgressBar::new(dataset.size() as u64);
     pb.set_style(
         ProgressStyle::default_bar()
@@ -59,7 +57,8 @@ where F: Fn(IndexT, &[IndexT]) -> Vec<IndexT> + Sync
         .into_par_iter()
         .progress_with(pb)
         .map(|i| {
-            let candidates = (0..i).chain((i + 1)..dataset.size())
+            let candidates = (0..i)
+                .chain((i + 1)..dataset.size())
                 .map(|j| {
                     // let dist = dataset.compare_internal(i, j);
                     // (j as IndexT, dist as f32)
@@ -73,7 +72,3 @@ where F: Fn(IndexT, &[IndexT]) -> Vec<IndexT> + Sync
 
     VectorGraph::new(neighborhoods)
 }
-
-
-
-

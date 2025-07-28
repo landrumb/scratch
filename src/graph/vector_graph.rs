@@ -17,13 +17,12 @@ impl VectorGraph {
     /// constructs a new empty VectorGraph with the given number of nodes
     pub fn empty(n: usize) -> VectorGraph {
         let neighborhoods: Vec<Vec<IndexT>> = vec![Vec::new(); n];
-        let insertion_queues: Vec<Mutex<Vec<IndexT>>> = (0..n)
-            .map(|_| Mutex::new(Vec::new()))
-            .collect();
+        let insertion_queues: Vec<Mutex<Vec<IndexT>>> =
+            (0..n).map(|_| Mutex::new(Vec::new())).collect();
 
         VectorGraph {
             neighborhoods,
-            insertion_queues
+            insertion_queues,
         }
     }
 
@@ -31,7 +30,10 @@ impl VectorGraph {
         let insertion_queues: Vec<Mutex<Vec<IndexT>>> = (0..neighborhoods.len())
             .map(|_| Mutex::new(Vec::new()))
             .collect();
-        VectorGraph { neighborhoods, insertion_queues }
+        VectorGraph {
+            neighborhoods,
+            insertion_queues,
+        }
     }
 
     /// returns the number of nodes in the graph
@@ -77,7 +79,7 @@ impl VectorGraph {
     pub fn preprocess_queues(&mut self, degree_bound: usize) {
         self.insertion_queues
             .par_iter_mut()
-            .zip(self.neighborhoods.par_iter_mut()) 
+            .zip(self.neighborhoods.par_iter_mut())
             .for_each(|(queue, neighborhood)| {
                 let mut queue = queue.lock().unwrap();
                 if queue.is_empty() {
@@ -94,7 +96,8 @@ impl VectorGraph {
     /// returns a vector of (index, queue) pairs for all non-empty queues
     /// and clears the queues
     pub fn get_queued_edges(&mut self) -> Vec<(IndexT, Vec<IndexT>)> {
-        let nonempty_queues = self.insertion_queues
+        let nonempty_queues = self
+            .insertion_queues
             .par_iter_mut()
             .enumerate()
             .filter_map(|(i, queue)| {
