@@ -1,4 +1,4 @@
-use std::{path::Path, time::Instant};
+use std::{path::Path, sync::Arc, time::Instant};
 
 use scratch::{
     constructions::{
@@ -45,12 +45,12 @@ fn main() {
 
     let subset_sizes = vec![1000, 2500, 5000, 7500, 10000, 15000, 20000, 25000];
 
-    let boxed_dataset: Box<VectorDataset<f32>> = Box::new(read_fbin(Path::new(&default_data_file)));
+    let dataset: Arc<VectorDataset<f32>> = Arc::new(read_fbin(Path::new(&default_data_file)));
 
     for subset_size in subset_sizes {
         println!("Using subset of size {}", subset_size);
         let subset_indices = (0..subset_size).collect::<Vec<usize>>();
-        let subset = Subset::new(boxed_dataset.clone(), subset_indices);
+        let subset = Subset::new(dataset.clone(), subset_indices);
 
         // build the graph
         let start = Instant::now();

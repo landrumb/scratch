@@ -1,6 +1,7 @@
 //! traits for generic handling of collections of items
 
 use std::ops::Sub;
+use std::sync::Arc;
 
 pub trait Numeric: Copy + Into<f64> + Sub<Output = Self> + Default + Send + Sync {}
 
@@ -54,6 +55,28 @@ pub trait Dataset<T>: Send + Sync {
 }
 
 impl<T, D> Dataset<T> for Box<D>
+where
+    T: Numeric,
+    D: Dataset<T>,
+{
+    fn compare_internal(&self, i: usize, j: usize) -> f64 {
+        self.as_ref().compare_internal(i, j)
+    }
+
+    fn compare(&self, q: &[T], i: usize) -> f64 {
+        self.as_ref().compare(q, i)
+    }
+
+    fn get(&self, i: usize) -> &[T] {
+        self.as_ref().get(i)
+    }
+
+    fn size(&self) -> usize {
+        self.as_ref().size()
+    }
+}
+
+impl<T, D> Dataset<T> for Arc<D>
 where
     T: Numeric,
     D: Dataset<T>,
