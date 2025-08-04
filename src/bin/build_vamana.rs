@@ -1,6 +1,5 @@
 use clap::{Arg, Command};
-use std::path::PathBuf;
-use std::time::Instant;
+use std::{path::PathBuf, sync::Arc, time::Instant};
 
 use rand_distr::num_traits::ToPrimitive;
 use rayon::prelude::*;
@@ -66,8 +65,8 @@ fn main() {
     let mut start = Instant::now();
     // let dataset: VectorDataset<f32> = read_fbin(data_path);
 
-    let boxed_dataset: Box<VectorDataset<f32>> = Box::new(read_fbin(&data_path));
-    let mut subset_size: usize = boxed_dataset.size();
+    let dataset: Arc<VectorDataset<f32>> = Arc::new(read_fbin(&data_path));
+    let mut subset_size: usize = dataset.size();
 
     if let Some(subset_size_arg) = SUBSET_SIZE {
         subset_size = subset_size_arg.parse::<usize>().unwrap();
@@ -75,7 +74,7 @@ fn main() {
 
     println!("Using subset of size {}", subset_size);
     let subset_indices = (0..subset_size).collect::<Vec<usize>>();
-    let subset = Subset::new(boxed_dataset, subset_indices);
+    let subset = Subset::new(dataset, subset_indices);
 
     let elapsed = start.elapsed();
     println!(

@@ -12,6 +12,7 @@ use pyo3::prelude::*;
 use pyo3::IntoPyObjectExt;
 use rayon::iter::IntoParallelIterator;
 use rayon::prelude::*;
+use std::sync::Arc;
 
 #[pyclass]
 pub struct PyVectorDataset {
@@ -323,7 +324,7 @@ impl PySubset {
     #[new]
     fn new(dataset: &PyVectorDataset, indices: Vec<usize>) -> Self {
         // Create a new VectorDataset to pass to Subset
-        let new_dataset = Box::new(dataset.dataset.clone());
+        let new_dataset = Arc::new(dataset.dataset.clone());
 
         PySubset {
             subset: Subset::new(new_dataset, indices),
