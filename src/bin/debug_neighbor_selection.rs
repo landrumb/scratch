@@ -41,9 +41,7 @@ fn main() {
 
     let faux_nearest = pairwise_distances.nearest(center_id);
 
-    println!(
-        "'Nearest neighbor' to point {center_id}: {faux_nearest:?}"
-    );
+    println!("'Nearest neighbor' to point {center_id}: {faux_nearest:?}");
     println!(
         "compare_internal of point {} with its 'nearest neighbor' {}: {}",
         center_id,
@@ -78,13 +76,9 @@ fn main() {
     );
 
     let brute_force_distances = dataset.brute_force_internal(center_id as usize);
-    println!(
-        "Brute force distances for point {center_id}: {brute_force_distances:?}"
-    );
+    println!("Brute force distances for point {center_id}: {brute_force_distances:?}");
 
-    println!(
-        "Running neighbor selection for point {center_id} with alpha={alpha}"
-    );
+    println!("Running neighbor selection for point {center_id} with alpha={alpha}");
     let neighbors = incremental_greedy(
         center_id,
         &candidates,

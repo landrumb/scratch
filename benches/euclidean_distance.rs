@@ -8,8 +8,8 @@ fn euclidean_group(c: &mut Criterion) {
     let mut rng = rand::rng();
     let normal = Normal::new(0.0, 1.0).unwrap();
     let mut data = vec![0.0; 10000];
-    for i in 0..10000 {
-        data[i] = normal.sample(&mut rng);
+    for data in data.iter_mut() {
+        *data = normal.sample(&mut rng);
     }
 
     let mut group = c.benchmark_group("euclidean");

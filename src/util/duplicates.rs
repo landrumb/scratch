@@ -18,10 +18,10 @@ pub fn duplicate_sets<T>(dataset: Arc<VectorDataset<T>>, radius: Option<f64>) ->
 where
     T: Numeric + SqEuclidean + 'static,
 {
-    //! we use recursive parallel bisection to winnow down the search space;
-    //! once we have < 100 vectors or we do a partition that doesn't reduce the number of vectors,
-    //! we use a hash map to find duplicates.
-    //! doing this instead of lsh because we want to be able to find approximate duplicates
+    // we use recursive parallel bisection to winnow down the search space;
+    // once we have < 100 vectors or we do a partition that doesn't reduce the number of vectors,
+    // we use a hash map to find duplicates.
+    // doing this instead of lsh because we want to be able to find approximate duplicates
     let indices: Vec<usize> = (0..dataset.n).collect();
     let radius = radius.unwrap_or(0.000000001); // default radius for approximate equality
     let subset = Subset::new(dataset.clone(), indices);

@@ -137,12 +137,11 @@ fn main() {
     );
 
     // Load ground truth and compute recall
-    let gt: GroundTruth;
-    if _gt_path.exists() {
-        gt = GroundTruth::read(&_gt_path);
+    let gt: GroundTruth = if _gt_path.exists() {
+        GroundTruth::read(&_gt_path)
     } else {
-        gt = compute_ground_truth(&queries, &subset, 10).unwrap();
-    }
+        compute_ground_truth(&queries, &subset, 10).unwrap()
+    };
 
     let graph_recall = (0..results.len())
         .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))

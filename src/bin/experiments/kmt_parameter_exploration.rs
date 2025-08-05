@@ -92,9 +92,7 @@ fn main() {
     let gt = GroundTruth::read(&gt_path);
 
     // Build KMeansTree index once
-    println!(
-        "Building KMeansTree (branching_factor={branching_factor}, spillover={spillover})"
-    );
+    println!("Building KMeansTree (branching_factor={branching_factor}, spillover={spillover})");
     let start = Instant::now();
     let kmt = KMeansTree::build_with_spillover(
         &dataset,

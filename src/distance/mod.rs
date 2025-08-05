@@ -8,14 +8,18 @@ pub enum Distance {
     Cosine,
     InnerProduct,
 }
-impl Distance {
-    pub fn from_str(s: &str) -> Self {
+use std::str::FromStr;
+
+impl FromStr for Distance {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "euclidean" => Distance::Euclidean,
-            "squared_euclidean" => Distance::SquaredEuclidean,
-            "cosine" => Distance::Cosine,
-            "inner_product" => Distance::InnerProduct,
-            _ => panic!("Unknown distance: {s}"),
+            "euclidean" => Ok(Distance::Euclidean),
+            "squared_euclidean" => Ok(Distance::SquaredEuclidean),
+            "cosine" => Ok(Distance::Cosine),
+            "inner_product" => Ok(Distance::InnerProduct),
+            _ => Err(()),
         }
     }
 }

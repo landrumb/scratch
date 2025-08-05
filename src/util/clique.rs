@@ -33,13 +33,10 @@ pub fn maximal_cliques(graph: &VectorGraph) -> Vec<Vec<IndexT>> {
             bron_kerbosch_pivot(&neighbors, r, p, x, &mut cliques);
             cliques
         })
-        .reduce(
-            Vec::new,
-            |mut acc, mut cliques| {
-                acc.append(&mut cliques);
-                acc
-            },
-        )
+        .reduce(Vec::new, |mut acc, mut cliques| {
+            acc.append(&mut cliques);
+            acc
+        })
 }
 
 fn bron_kerbosch_pivot(

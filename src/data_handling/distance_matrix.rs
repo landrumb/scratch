@@ -16,13 +16,13 @@ impl<T: Numeric> DistanceMatrix<T> {
 
         // Precompute the distance matrix
         let mut distances = vec![Vec::new(); n - 1];
-        for i in 0..n {
-            distances[i].reserve(n - i);
+        for (i, distance_vec) in distances.iter_mut().enumerate() {
+            distance_vec.reserve(n - i - 1);
         }
 
-        for i in 0..(n - 1) {
+        for (i, distance_vec) in distances.iter_mut().enumerate() {
             for j in (i + 1)..n {
-                distances[i].push(dataset.compare_internal(i, j) as f32);
+                distance_vec.push(dataset.compare_internal(i, j) as f32);
             }
         }
 
@@ -40,9 +40,9 @@ impl<T: Numeric> DistanceMatrix<T> {
 
         // Precompute the distance matrix
         let mut distances = vec![Vec::new(); n - 1];
-        for i in 0..(n - 1) {
-            // distances[i].resize(n - i, 0.0);
-            distances[i].reserve(n - i);
+        for (i, distance_vec) in distances.iter_mut().enumerate() {
+            // distance_vec.resize(n - i - 1, 0.0);
+            distance_vec.reserve(n - i - 1);
         }
 
         let pb = ProgressBar::new((n - 1) as u64);

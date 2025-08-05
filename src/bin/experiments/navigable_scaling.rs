@@ -20,7 +20,6 @@ fn main() {
     let output_file = String::from("outputs/scaling.csv");
 
     let log_file = std::fs::OpenOptions::new()
-        
         .create(true)
         .append(true)
         .open(output_file)

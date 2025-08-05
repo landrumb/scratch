@@ -99,11 +99,11 @@ pub fn kmeans_subset(
 
         // Update centroids and calculate maximum change.
         max_change = 0.0;
-        for j in 0..k {
-            if counts[j] > 0 {
+        for (j, &count) in counts.iter().enumerate() {
+            if count > 0 {
                 let base = j * dataset.dim;
                 for d in 0..dataset.dim {
-                    let new_val = new_centroids[base + d] / counts[j] as f32;
+                    let new_val = new_centroids[base + d] / count as f32;
                     let change = (new_val - centroids[base + d]).abs() as f64;
                     if change > max_change {
                         max_change = change;

@@ -213,9 +213,7 @@ fn main() {
 
     // Sample a subset of dataset points to use as queries (to make it faster)
     let sample_size = std::cmp::min(1000, dataset.size());
-    println!(
-        "Using {sample_size} randomly sampled dataset points as queries"
-    );
+    println!("Using {sample_size} randomly sampled dataset points as queries");
 
     let sample_indices: Vec<usize> = (0..dataset.size())
         .step_by(dataset.size() / sample_size)
