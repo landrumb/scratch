@@ -62,9 +62,7 @@ pub fn read_fbin_subset<T: Numeric + SqEuclidean>(
 
     assert!(
         subset_size <= n as usize,
-        "subset size {} is larger than dataset size {}",
-        subset_size,
-        n
+        "subset size {subset_size} is larger than dataset size {n}"
     );
 
     let n = subset_size as u32;

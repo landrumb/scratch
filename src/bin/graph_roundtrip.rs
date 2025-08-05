@@ -35,18 +35,18 @@ fn main() {
     let output_file = matches.get_one::<String>("output").unwrap();
 
     if !Path::new(input_file).exists() {
-        eprintln!("Input file does not exist: {}", input_file);
+        eprintln!("Input file does not exist: {input_file}");
         process::exit(1);
     }
 
-    println!("Reading graph from: {}", input_file);
+    println!("Reading graph from: {input_file}");
 
     // Measure the time it takes to read the graph
     let start_read = Instant::now();
     let graph = match ClassicGraph::read(input_file) {
         Ok(g) => g,
         Err(e) => {
-            eprintln!("Error reading graph file: {}", e);
+            eprintln!("Error reading graph file: {e}");
             process::exit(1);
         }
     };
@@ -74,21 +74,21 @@ fn main() {
         }
     }
 
-    println!("Total edges: {}", total_edges);
+    println!("Total edges: {total_edges}");
     println!(
         "Average degree: {:.2}",
         total_edges as f64 / graph.size() as f64
     );
-    println!("Minimum degree: {}", min_degree);
-    println!("Maximum actual degree: {}", max_degree);
+    println!("Minimum degree: {min_degree}");
+    println!("Maximum actual degree: {max_degree}");
 
     // Now write the graph to the output file
-    println!("\nWriting graph to: {}", output_file);
+    println!("\nWriting graph to: {output_file}");
     let start_write = Instant::now();
     match graph.save(output_file) {
         Ok(_) => {}
         Err(e) => {
-            eprintln!("Error writing graph file: {}", e);
+            eprintln!("Error writing graph file: {e}");
             process::exit(1);
         }
     }
@@ -108,7 +108,7 @@ fn main() {
         let verified_graph = match ClassicGraph::read(output_file) {
             Ok(g) => g,
             Err(e) => {
-                eprintln!("Error reading written graph file: {}", e);
+                eprintln!("Error reading written graph file: {e}");
                 process::exit(1);
             }
         };
@@ -150,7 +150,7 @@ fn main() {
 
             for j in 0..orig_neighbors.len() {
                 if orig_neighbors[j] != new_neighbors[j] {
-                    println!("❌ Edge mismatch for node {} at position {}", i, j);
+                    println!("❌ Edge mismatch for node {i} at position {j}");
                     edge_mismatch = true;
                     is_equal = false;
                     break;

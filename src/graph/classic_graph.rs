@@ -253,7 +253,7 @@ impl ClassicGraph {
     /// returns an EdgeRange view of the neighborhood of a node
     /// this is equivalent to the [] operator in the C++ implementation
     pub fn get_edge_range(&self, i: IndexT) -> EdgeRange {
-        assert!(i < self.n, "graph index out of range: {}", i);
+        assert!(i < self.n, "graph index out of range: {i}");
         EdgeRange::new(self.get_neighborhood(i), i)
     }
 }

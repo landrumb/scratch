@@ -19,10 +19,10 @@ use rayon::prelude::*;
 
 fn main() {
     let dataset_dir = String::from("data/word2vec-google-news-300_50000_lowercase");
-    let default_data_file = format!("{}/base.fbin", dataset_dir);
-    let default_query_file = format!("{}/query.fbin", dataset_dir);
-    let default_graph_file = format!("{}/outputs/vamana", dataset_dir);
-    let default_gt_file = format!("{}/GT", dataset_dir);
+    let default_data_file = format!("{dataset_dir}/base.fbin");
+    let default_query_file = format!("{dataset_dir}/query.fbin");
+    let default_graph_file = format!("{dataset_dir}/outputs/vamana");
+    let default_gt_file = format!("{dataset_dir}/GT");
 
     // presumably we'll have some command line arguments here
 
@@ -78,7 +78,7 @@ fn main() {
         .sum::<f64>()
         / queries.size().to_f64().unwrap();
 
-    println!("recall: {:05}", graph_recall);
+    println!("recall: {graph_recall:05}");
 
     start = Instant::now();
 
@@ -116,7 +116,7 @@ fn main() {
         .sum::<f64>()
         / queries.size().to_f64().unwrap();
 
-    println!("IVF recall: {:05}", ivf_recall);
+    println!("IVF recall: {ivf_recall:05}");
 
     start = Instant::now();
 
@@ -151,5 +151,5 @@ fn main() {
         .sum::<f64>()
         / queries.size().to_f64().unwrap();
 
-    println!("KMT recall: {:05}", kmt_recall);
+    println!("KMT recall: {kmt_recall:05}");
 }

@@ -20,7 +20,7 @@ fn main() {
     let output_file = String::from("outputs/scaling.csv");
 
     let log_file = std::fs::OpenOptions::new()
-        .write(true)
+        
         .create(true)
         .append(true)
         .open(output_file)
@@ -31,7 +31,7 @@ fn main() {
     // if there's no file, create it and write the header
     if log_writer.get_ref().metadata().unwrap().len() == 0 {
         log_writer
-            .write_record(&[
+            .write_record([
                 "method",
                 "subset_size",
                 "dcmp_time",
@@ -48,7 +48,7 @@ fn main() {
     let dataset: Arc<VectorDataset<f32>> = Arc::new(read_fbin(Path::new(&default_data_file)));
 
     for subset_size in subset_sizes {
-        println!("Using subset of size {}", subset_size);
+        println!("Using subset of size {subset_size}");
         let subset_indices = (0..subset_size).collect::<Vec<usize>>();
         let subset = Subset::new(dataset.clone(), subset_indices);
 

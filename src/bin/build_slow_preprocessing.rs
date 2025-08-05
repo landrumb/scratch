@@ -70,7 +70,7 @@ fn main() {
 
     if let Ok(subset_size_str) = std::env::var("SUBSET_SIZE") {
         dataset = read_fbin_subset(&data_path, subset_size_str.parse().unwrap());
-        println!("Using subset of size {}", subset_size_str);
+        println!("Using subset of size {subset_size_str}");
     } else {
         dataset = read_fbin(&data_path);
         println!("Using full dataset of size {}", dataset.size());
@@ -114,7 +114,7 @@ fn main() {
     // });
 
     let elapsed = start.elapsed();
-    println!("built graph in {:?}", elapsed);
+    println!("built graph in {elapsed:?}");
 
     println!("Total edges: {}", graph.total_edges());
     println!("Average degree: {}", graph.total_edges() / dataset.size());
@@ -149,7 +149,7 @@ fn main() {
         .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
         .sum::<f64>()
         / results.len().to_f64().unwrap();
-    println!("recall: {:.5}", graph_recall);
+    println!("recall: {graph_recall:.5}");
 
     // write the graph to disk
     let classic_graph = ClassicGraph::from(&graph);
@@ -184,7 +184,7 @@ fn main() {
         .sum::<f64>()
         / dataset_results.len().to_f64().unwrap();
 
-    println!("self recall: {:.5}", dataset_recall);
+    println!("self recall: {dataset_recall:.5}");
 
     let n_points_connected_to_nearest_neighbor = (0..dataset.size())
         .into_par_iter()

@@ -21,14 +21,14 @@ mod tests {
 
     // Helper function to create a temporary file path
     fn temp_file_path(name: &str) -> String {
-        format!("target/{}", name)
+        format!("target/{name}")
     }
 
     // Helper to clean up temporary files
     fn cleanup_temp_file(path: &str) {
         if Path::new(path).exists() {
             fs::remove_file(path).unwrap_or_else(|_| {
-                println!("Warning: Failed to remove temporary file: {}", path);
+                println!("Warning: Failed to remove temporary file: {path}");
             });
         }
     }
@@ -110,15 +110,13 @@ mod tests {
             assert_eq!(
                 original_neighbors.len(),
                 loaded_neighbors.len(),
-                "Node {} has different number of neighbors",
-                i
+                "Node {i} has different number of neighbors"
             );
 
             for j in 0..original_neighbors.len() {
                 assert_eq!(
                     original_neighbors[j], loaded_neighbors[j],
-                    "Neighbors don't match for node {} at position {}",
-                    i, j
+                    "Neighbors don't match for node {i} at position {j}"
                 );
             }
         }
@@ -160,8 +158,7 @@ mod tests {
             assert_eq!(
                 loaded_graph.degree(i),
                 expected_degree,
-                "Node {} has wrong degree",
-                i
+                "Node {i} has wrong degree"
             );
 
             let original_neighbors = graph.get_neighborhood(i);
@@ -170,8 +167,7 @@ mod tests {
             for j in 0..original_neighbors.len() {
                 assert_eq!(
                     original_neighbors[j], loaded_neighbors[j],
-                    "Neighbors don't match for node {} at position {}",
-                    i, j
+                    "Neighbors don't match for node {i} at position {j}"
                 );
             }
         }
@@ -211,8 +207,7 @@ mod tests {
             assert_eq!(
                 loaded_graph.degree(i),
                 r,
-                "Node {} doesn't have max degree",
-                i
+                "Node {i} doesn't have max degree"
             );
 
             let original_neighbors = graph.get_neighborhood(i);
@@ -221,8 +216,7 @@ mod tests {
             for j in 0..r {
                 assert_eq!(
                     original_neighbors[j], loaded_neighbors[j],
-                    "Neighbors don't match for node {} at position {}",
-                    i, j
+                    "Neighbors don't match for node {i} at position {j}"
                 );
             }
         }

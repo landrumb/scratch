@@ -15,7 +15,7 @@ impl Distance {
             "squared_euclidean" => Distance::SquaredEuclidean,
             "cosine" => Distance::Cosine,
             "inner_product" => Distance::InnerProduct,
-            _ => panic!("Unknown distance: {}", s),
+            _ => panic!("Unknown distance: {s}"),
         }
     }
 }

@@ -93,8 +93,7 @@ fn main() {
 
     // Build KMeansTree index once
     println!(
-        "Building KMeansTree (branching_factor={}, spillover={})",
-        branching_factor, spillover
+        "Building KMeansTree (branching_factor={branching_factor}, spillover={spillover})"
     );
     let start = Instant::now();
     let kmt = KMeansTree::build_with_spillover(
@@ -126,7 +125,7 @@ fn main() {
 
     // Run tests for each beam size
     for &beam_size in &beam_sizes {
-        println!("Testing beam size: {}", beam_size);
+        println!("Testing beam size: {beam_size}");
 
         // Run queries with beam search
         let start = Instant::now();
@@ -158,25 +157,17 @@ fn main() {
             .sum::<f64>()
             / queries.size().to_f64().unwrap();
 
-        println!("Recall: {}", kmt_recall);
+        println!("Recall: {kmt_recall}");
 
         // Write results to CSV with all parameters and the timestamp
         writeln!(
             file,
-            "{},{},{},{},{},{},{},{}",
-            branching_factor,
-            spillover,
-            max_leaf_size,
-            max_iterations,
-            epsilon,
-            beam_size,
-            kmt_recall,
-            qps
+            "{branching_factor},{spillover},{max_leaf_size},{max_iterations},{epsilon},{beam_size},{kmt_recall},{qps}"
         )
         .expect("Failed to write to output file");
 
         println!("-------------------------");
     }
 
-    println!("Experiment complete. Results saved to {}", output_file);
+    println!("Experiment complete. Results saved to {output_file}");
 }

@@ -58,7 +58,7 @@ where
 
     let mut left_indices = Vec::new();
     let mut right_indices = Vec::new();
-    for (i, index) in (0..subset.size() as IndexT).into_iter().enumerate() {
+    for (i, index) in (0..subset.size() as IndexT).enumerate() {
         if partialities[i] < 0.0 {
             left_indices.push(index as usize);
         } else {

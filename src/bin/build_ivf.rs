@@ -151,5 +151,5 @@ fn main() {
         .map(|i| recall(ivf_results[i].as_slice(), gt.get_neighbors(i)))
         .sum::<f64>()
         / queries.size().to_f64().unwrap();
-    println!("IVF recall: {:05}", ivf_recall);
+    println!("IVF recall: {ivf_recall:05}");
 }

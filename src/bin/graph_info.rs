@@ -17,14 +17,14 @@ fn main() {
         .get_matches();
 
     let graph_file = matches.get_one::<String>("graph").unwrap();
-    println!("Reading graph from file: {}", graph_file);
+    println!("Reading graph from file: {graph_file}");
 
     // Measure the time it takes to read the graph
     let start = Instant::now();
     let graph = match ClassicGraph::read(graph_file) {
         Ok(g) => g,
         Err(e) => {
-            eprintln!("Error reading graph file: {}", e);
+            eprintln!("Error reading graph file: {e}");
             process::exit(1);
         }
     };
@@ -51,13 +51,13 @@ fn main() {
         *degree_distribution.entry(degree).or_insert(0) += 1;
     }
 
-    println!("Total edges: {}", total_edges);
+    println!("Total edges: {total_edges}");
     println!(
         "Average degree: {:.2}",
         total_edges as f64 / graph.size() as f64
     );
-    println!("Minimum degree: {}", min_degree);
-    println!("Maximum actual degree: {}", max_degree);
+    println!("Minimum degree: {min_degree}");
+    println!("Maximum actual degree: {max_degree}");
 
     // Show degree distribution (limit to 10 most common degrees)
     println!("\nDegree distribution (top 10):");
@@ -85,7 +85,7 @@ fn main() {
             i,
             neighborhood.len(),
             if neighborhood.len() <= 10 {
-                format!("{:?}", neighborhood)
+                format!("{neighborhood:?}")
             } else {
                 format!(
                     "{:?}...(and {} more)",
@@ -110,8 +110,7 @@ fn main() {
 
     if has_self_loops {
         println!(
-            "\nNote: Detected self-loops in the graph (at least {} nodes)",
-            nodes_with_self_loops
+            "\nNote: Detected self-loops in the graph (at least {nodes_with_self_loops} nodes)"
         );
     }
 

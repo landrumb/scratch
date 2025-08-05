@@ -30,7 +30,7 @@ fn main() {
         }
         let dataset_path = entry.path();
         let dataset_name = dataset_path.file_name().unwrap().to_string_lossy();
-        println!("Dataset: {}", dataset_name);
+        println!("Dataset: {dataset_name}");
 
         let base_path = dataset_path.join("base.fbin");
         if base_path.exists() {
@@ -48,7 +48,7 @@ fn main() {
                         num_sets
                     );
                 }
-                Err(e) => println!("  failed to load base.fbin: {}", e),
+                Err(e) => println!("  failed to load base.fbin: {e}"),
             }
         } else {
             println!("  base.fbin not found");
@@ -60,9 +60,9 @@ fn main() {
                 Ok(dataset) => {
                     let dataset = Arc::new(dataset);
                     let (dup, _) = count_duplicates(dataset, None);
-                    println!("  query.fbin duplicates: {}", dup);
+                    println!("  query.fbin duplicates: {dup}");
                 }
-                Err(e) => println!("  failed to load query.fbin: {}", e),
+                Err(e) => println!("  failed to load query.fbin: {e}"),
             }
         } else {
             println!("  query.fbin not found");

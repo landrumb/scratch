@@ -126,7 +126,7 @@ fn main() {
     );
 
     // Build KMeansTree index
-    println!("Building KMeansTree (spillover factor = {})", spillover);
+    println!("Building KMeansTree (spillover factor = {spillover})");
     start = Instant::now();
     let kmt = KMeansTree::build_with_spillover(
         &dataset,
@@ -159,7 +159,7 @@ fn main() {
     start = Instant::now();
 
     let query_method = if beam_width > 0 {
-        println!("Using beam search query with beam_width={}", beam_width);
+        println!("Using beam search query with beam_width={beam_width}");
         "beam search"
     } else {
         "standard"
@@ -195,7 +195,7 @@ fn main() {
         .map(|i| recall(kmt_results[i].as_slice(), gt.get_neighbors(i)))
         .sum::<f64>()
         / queries.size().to_f64().unwrap();
-    println!("KMT recall on test queries: {:05}", kmt_recall);
+    println!("KMT recall on test queries: {kmt_recall:05}");
 
     // -------------- Dataset as Queries (1-NN Recall) ----------------
     println!("\n----- Using Dataset Points as Queries for 1-NN Recall -----");
@@ -214,8 +214,7 @@ fn main() {
     // Sample a subset of dataset points to use as queries (to make it faster)
     let sample_size = std::cmp::min(1000, dataset.size());
     println!(
-        "Using {} randomly sampled dataset points as queries",
-        sample_size
+        "Using {sample_size} randomly sampled dataset points as queries"
     );
 
     let sample_indices: Vec<usize> = (0..dataset.size())
@@ -258,7 +257,7 @@ fn main() {
 
     // Print detailed info for a few examples
     let num_examples = std::cmp::min(10, sample_size);
-    println!("Examining first {} queries in detail:", num_examples);
+    println!("Examining first {num_examples} queries in detail:");
 
     let mut success_count = 0;
     let mut self_recall = 0.0;
@@ -294,23 +293,23 @@ fn main() {
 
             // Find which partition contains the point
             let point_partition = kmt.find_point_partition(i);
-            println!("   Query point is in partition: {:?}", point_partition);
+            println!("   Query point is in partition: {point_partition:?}");
 
             // If not using beam search, print standard query path information
             if beam_width == 0 {
                 // Run separate query to see which partition we search in
                 let query = dataset.get(i);
                 let search_partition = kmt.debug_query_partition(query);
-                println!("   Search led to partition: {:?}", search_partition);
+                println!("   Search led to partition: {search_partition:?}");
 
                 // See if the point's partition contains the point itself
                 if let Some(partition_id) = search_partition {
                     let partition_points = kmt.get_partition_points(partition_id);
                     let contains_self = partition_points.contains(&(i as IndexT));
-                    println!("   Search partition contains self: {}", contains_self);
+                    println!("   Search partition contains self: {contains_self}");
                 }
             } else {
-                println!("   Using beam search with width: {}", beam_width);
+                println!("   Using beam search with width: {beam_width}");
             }
 
             // Calculate direct distance to confirm point should match itself
@@ -326,12 +325,12 @@ fn main() {
                 }
                 distance = distance.sqrt();
 
-                println!("   Distance between points: {}", distance);
+                println!("   Distance between points: {distance}");
 
                 // If not matching, find actual distance to self
                 if !success {
                     let self_distance = dataset.compare(query_point, i);
-                    println!("   Distance to self: {} (should be 0.0)", self_distance);
+                    println!("   Distance to self: {self_distance} (should be 0.0)");
                 }
             }
         }
@@ -339,7 +338,6 @@ fn main() {
 
     self_recall /= sample_size as f64;
     println!(
-        "\nKMT self-recall on dataset points: {:.5} ({}/{} points found themselves)",
-        self_recall, success_count, sample_size
+        "\nKMT self-recall on dataset points: {self_recall:.5} ({success_count}/{sample_size} points found themselves)"
     );
 }

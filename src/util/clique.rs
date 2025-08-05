@@ -34,7 +34,7 @@ pub fn maximal_cliques(graph: &VectorGraph) -> Vec<Vec<IndexT>> {
             cliques
         })
         .reduce(
-            || Vec::new(),
+            Vec::new,
             |mut acc, mut cliques| {
                 acc.append(&mut cliques);
                 acc

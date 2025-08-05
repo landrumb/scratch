@@ -12,7 +12,7 @@ fn main() {
     let center_id: IndexT = 72;
     let alpha = 1.01;
 
-    println!("Loading dataset from {}", dataset_path);
+    println!("Loading dataset from {dataset_path}");
     let dataset =
         VectorDataset::from_file(Path::new(dataset_path)).expect("Failed to load dataset");
     println!("Dataset size: {}", dataset.size());
@@ -42,8 +42,7 @@ fn main() {
     let faux_nearest = pairwise_distances.nearest(center_id);
 
     println!(
-        "'Nearest neighbor' to point {}: {:?}",
-        center_id, faux_nearest
+        "'Nearest neighbor' to point {center_id}: {faux_nearest:?}"
     );
     println!(
         "compare_internal of point {} with its 'nearest neighbor' {}: {}",
@@ -80,13 +79,11 @@ fn main() {
 
     let brute_force_distances = dataset.brute_force_internal(center_id as usize);
     println!(
-        "Brute force distances for point {}: {:?}",
-        center_id, brute_force_distances
+        "Brute force distances for point {center_id}: {brute_force_distances:?}"
     );
 
     println!(
-        "Running neighbor selection for point {} with alpha={}",
-        center_id, alpha
+        "Running neighbor selection for point {center_id} with alpha={alpha}"
     );
     let neighbors = incremental_greedy(
         center_id,
@@ -100,7 +97,7 @@ fn main() {
     println!("Selected {} neighbors:", neighbors.len());
     for (i, &neighbor) in neighbors.iter().enumerate() {
         let distance = dataset.compare_internal(center_id as usize, neighbor as usize);
-        println!("  {}: Point {} (distance: {})", i, neighbor, distance);
+        println!("  {i}: Point {neighbor} (distance: {distance})");
     }
     println!("Done.");
 }

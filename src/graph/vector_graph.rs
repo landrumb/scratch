@@ -82,7 +82,7 @@ impl VectorGraph {
             .par_iter_mut()
             .zip(self.neighborhoods.par_iter_mut())
             .for_each(|(queue, neighborhood)| {
-                let mut queue = queue.lock().unwrap();
+                let mut queue = queue.get_mut().unwrap();
                 if queue.is_empty() {
                     return;
                 }
@@ -90,7 +90,7 @@ impl VectorGraph {
                     return;
                 }
                 neighborhood.extend(queue.iter());
-                queue.clear();
+                queue.clear()
             });
     }
 
@@ -102,7 +102,7 @@ impl VectorGraph {
             .par_iter_mut()
             .enumerate()
             .filter_map(|(i, queue)| {
-                let mut queue = queue.lock().unwrap();
+                let mut queue = queue.get_mut().unwrap();
                 if !queue.is_empty() {
                     let queue_copy = queue.clone();
                     queue.clear();

@@ -72,7 +72,7 @@ fn main() {
         subset_size = subset_size_arg.parse::<usize>().unwrap();
     }
 
-    println!("Using subset of size {}", subset_size);
+    println!("Using subset of size {subset_size}");
     let subset_indices = (0..subset_size).collect::<Vec<usize>>();
     let subset = Subset::new(dataset, subset_indices);
 
@@ -92,7 +92,7 @@ fn main() {
     let graph = build_vamana_graph(&subset, 1.01, 8, 100, Some(500), Some(0));
 
     let elapsed = start.elapsed();
-    println!("built graph in {:?}", elapsed);
+    println!("built graph in {elapsed:?}");
 
     println!("Total edges: {}", graph.total_edges());
     println!("Average degree: {}", graph.total_edges() / subset.size());
@@ -127,7 +127,7 @@ fn main() {
         .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
         .sum::<f64>()
         / results.len().to_f64().unwrap();
-    println!("recall: {:.5}", graph_recall);
+    println!("recall: {graph_recall:.5}");
 
     // write the graph to disk
     let classic_graph = ClassicGraph::from(&graph);
@@ -156,7 +156,7 @@ fn main() {
         .sum::<f64>()
         / dataset_results.len().to_f64().unwrap();
 
-    println!("self recall: {:.5}", dataset_recall);
+    println!("self recall: {dataset_recall:.5}");
 
     let n_points_connected_to_nearest_neighbor = (0..subset.size())
         .into_par_iter()

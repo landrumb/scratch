@@ -116,5 +116,5 @@ fn main() {
         .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
         .sum::<f64>()
         / queries.size().to_f64().unwrap();
-    println!("recall: {:05}", graph_recall);
+    println!("recall: {graph_recall:05}");
 }

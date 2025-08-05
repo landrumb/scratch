@@ -80,7 +80,7 @@ fn main() {
 
     if let Some(&subset_size_arg) = matches.get_one::<usize>("subset_size") {
         subset_size = subset_size_arg;
-        println!("Using subset of size {}", subset_size);
+        println!("Using subset of size {subset_size}");
     } else {
         println!("Using full dataset of size {}", dataset.size());
     }
@@ -111,7 +111,7 @@ fn main() {
         graph = build_vamana_graph(&subset, 1.01, 8, 100, Some(500), Some(0));
 
         let elapsed = start.elapsed();
-        println!("built graph in {:?}", elapsed);
+        println!("built graph in {elapsed:?}");
     }
     println!("Total edges: {}", graph.total_edges());
     println!("Average degree: {}", graph.total_edges() / subset.size());
@@ -148,7 +148,7 @@ fn main() {
         .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
         .sum::<f64>()
         / results.len().to_f64().unwrap();
-    println!("recall: {:.5}", graph_recall);
+    println!("recall: {graph_recall:.5}");
 
     // // write the graph to disk
     // let classic_graph = ClassicGraph::from(&graph);
@@ -232,7 +232,7 @@ fn main() {
     let compacted_graph =
         CompactedGraphIndex::build_memory_inefficient(graph, dataset, independent_cliques_box);
     let elapsed = start.elapsed();
-    println!("Built compacted graph in {:?}", elapsed);
+    println!("Built compacted graph in {elapsed:?}");
 
     let start = Instant::now();
     // run queries on the compacted graph
@@ -241,7 +241,7 @@ fn main() {
         .map(|i| compacted_graph.beam_search_post_expansion(queries.get(i), 20))
         .collect();
     let elapsed = start.elapsed();
-    println!("Ran queries on compacted graph in {:?}", elapsed);
+    println!("Ran queries on compacted graph in {elapsed:?}");
 
     println!("Graph size: {}", compacted_graph.graph_size());
 
@@ -250,5 +250,5 @@ fn main() {
         .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
         .sum::<f64>()
         / results.len().to_f64().unwrap();
-    println!("Recall: {:.5}", recall);
+    println!("Recall: {recall:.5}");
 }

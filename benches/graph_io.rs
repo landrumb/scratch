@@ -72,7 +72,7 @@ fn bench_graph_read(c: &mut Criterion) {
     ];
 
     for (name, size, max_degree, avg_degree) in configs {
-        let graph_path = format!("target/benchmark/bench_graph_{}.bin", name);
+        let graph_path = format!("target/benchmark/bench_graph_{name}.bin");
         let graph = create_random_graph(size as IndexT, max_degree, avg_degree);
         graph
             .save(&graph_path)
@@ -109,7 +109,7 @@ fn bench_graph_write(c: &mut Criterion) {
         // Benchmark writing this graph
         group.bench_with_input(BenchmarkId::new("write", name), &graph, |b, g| {
             b.iter(|| {
-                let graph_path = format!("target/benchmark/bench_write_{}.bin", name);
+                let graph_path = format!("target/benchmark/bench_write_{name}.bin");
                 g.save(&graph_path)
                     .expect("Failed to write graph in benchmark");
             });
@@ -132,8 +132,8 @@ fn bench_graph_roundtrip(c: &mut Criterion) {
     ];
 
     for (name, size, max_degree, avg_degree) in configs {
-        let input_path = format!("target/benchmark/bench_rt_in_{}.bin", name);
-        let output_path = format!("target/benchmark/bench_rt_out_{}.bin", name);
+        let input_path = format!("target/benchmark/bench_rt_in_{name}.bin");
+        let output_path = format!("target/benchmark/bench_rt_out_{name}.bin");
 
         // Create the initial graph
         let graph = create_random_graph(size as IndexT, max_degree, avg_degree);
