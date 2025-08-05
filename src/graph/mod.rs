@@ -2,11 +2,13 @@
 
 mod beam_search;
 mod classic_graph;
+mod compacted_graph;
 mod graph_traits;
 mod vector_graph;
 
 pub use beam_search::*;
 pub use classic_graph::*;
+pub use compacted_graph::*;
 pub use graph_traits::*;
 pub use vector_graph::*;
 
