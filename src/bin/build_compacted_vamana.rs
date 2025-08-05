@@ -221,8 +221,11 @@ fn main() {
         "Largest independent clique: {:?}",
         independent_cliques.iter().max_by_key(|c| c.len()).unwrap()
     );
-    
-    let independent_cliques_box: Box<[Box<[IndexT]>]> = independent_cliques.into_iter().map(|c| c.into_boxed_slice()).collect();
+
+    let independent_cliques_box: Box<[Box<[IndexT]>]> = independent_cliques
+        .into_iter()
+        .map(|c| c.into_boxed_slice())
+        .collect();
 
     let start = Instant::now();
     // build the compacted graph with the independent cliques

@@ -20,7 +20,6 @@ where
 }
 
 impl<T: Numeric + SqEuclidean + 'static> CompactedGraphIndex<T> {
-
     pub fn graph_size(&self) -> usize {
         self.internal_graph.n as usize
     }

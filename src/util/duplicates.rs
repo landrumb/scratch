@@ -1,4 +1,4 @@
-use rand::seq::{IndexedRandom, IteratorRandom};
+use rand::seq::IteratorRandom;
 use std::collections::HashSet;
 use std::sync::Arc;
 

@@ -7,7 +7,10 @@ use std::{ops::Sub, path::Path};
 
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
-use crate::distance::{euclidean, SqEuclidean};
+use crate::{
+    distance::{euclidean, SqEuclidean},
+    graph::IndexT,
+};
 
 use super::dataset_traits::{Dataset, Numeric};
 
@@ -140,6 +143,23 @@ where
         }
 
         Ok(())
+    }
+
+    #[allow(dead_code)]
+    fn shuffled_copy(&self, order: &[IndexT]) -> Self {
+        let mut new_data: Vec<T> = Vec::new();
+
+        let chunks: Vec<&[T]> = self.data.chunks(self.dim).collect();
+
+        for i in order {
+            new_data.extend_from_slice(chunks[*i as usize]);
+        }
+
+        Self {
+            data: new_data.into_boxed_slice(),
+            n: order.len(),
+            dim: self.dim,
+        }
     }
 }
 
