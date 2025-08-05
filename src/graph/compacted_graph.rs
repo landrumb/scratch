@@ -59,6 +59,34 @@ impl<T: Numeric + SqEuclidean + 'static> CompactedGraphIndex<T> {
             .collect()
     }
 
+    /// the same as beam_search_post_expansion, but instead of expanding every point in the beam, we expand the points in the visited set
+    pub fn beam_search_expand_visited(&self, query: &[T], beam_width: usize) -> Vec<IndexT> {
+        let (mut frontier, visited) = beam_search_with_visited(
+            query,
+            &self.internal_graph,
+            &*self.internal_dataset,
+            0,
+            beam_width,
+            None,
+        );
+        // if anything in the visited set corresponds to a posting list, try to add the rest of the posting list to the beam
+        let candidates: Vec<(IndexT, f32)> = visited
+            .iter()
+            .filter_map(|(id, _)| self.posting_lists.get(&id).map(|list| {
+                list.iter().map(|&index| (index, self.internal_dataset.compare(query, index as usize) as f32))
+            }))
+            .flatten()
+            .collect();
+
+        frontier.extend(candidates);
+        frontier.sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap());
+        frontier.truncate(beam_width);
+        frontier
+            .iter()
+            .map(|(i, _)| self.local_to_input_index[*i as usize])
+            .collect()
+    }
+
     /// doesn't do any kind of reordering etc, the secondary points are just added to the representative's posting list and have neighborhoods of length 0. Inbound edges are directed to the representative.
     /// The representative of a posting list is the first element of the list.
     pub fn build_memory_inefficient(
@@ -108,6 +136,28 @@ impl<T: Numeric + SqEuclidean + 'static> CompactedGraphIndex<T> {
             posting_lists: output_posting_lists,
             local_to_input_index,
         }
+    }
+
+    /// returns the indices of the points which are not in any posting list, and have edges in the graph
+    pub fn primary_points(&self) -> Vec<IndexT> {
+        let mut primary_points: Vec<IndexT> = Vec::new();
+        for i in 0..self.graph_size() {
+            if self.internal_graph.get_neighborhood(i as u32).len() > 0 {
+                primary_points.push(i as IndexT);
+            }
+        }
+        primary_points
+    }
+
+    /// returns the indices of the points which are in a posting list
+    pub fn secondary_points(&self) -> Vec<IndexT> {
+        let mut secondary_points: Vec<IndexT> = Vec::new();
+        for (_, list) in self.posting_lists.iter() {
+            for &index in list.iter() {
+                secondary_points.push(index);
+            }
+        }
+        secondary_points
     }
 
     // /// takes a graph, a dataset, and a set of posting lists, and constructs a CompactedGraphIndex where each posting list is represented in the graph by its lowest index element.

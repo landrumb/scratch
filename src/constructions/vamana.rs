@@ -38,7 +38,7 @@ pub fn build_vamana_graph<T>(
     let root = root.unwrap_or(0);
 
     // randomized insertion order which does not include the root. Counterintuitively,
-    // the insertion order goes backwards to facilitate breaking it off
+    // the insertion order goes backwards to facilitate breaking chunks off the end
     let mut insertion_order = (0..root)
         .chain((root + 1)..dataset.size() as IndexT)
         .collect::<Vec<_>>();

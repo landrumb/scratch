@@ -1,5 +1,5 @@
 use clap::{Arg, Command};
-use scratch::util::clique::{greedy_independent_cliques, maximal_cliques};
+use scratch::util::clique::{greedy_independent_cliques, maximal_bidirectional_cliques};
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Instant;
@@ -125,7 +125,7 @@ fn main() {
     let results: Vec<Vec<u32>> = (0..queries.size())
         // let results: Vec<Vec<u32>> = (0..subset_size)
         .into_par_iter()
-        .map(|i| beam_search(queries.get(i), &graph, &subset, 0, 20, None))
+        .map(|i| beam_search(queries.get(i), &graph, &subset, 0, 40, None))
         .collect();
 
     let elapsed = start.elapsed();
@@ -207,7 +207,7 @@ fn main() {
 
     println!("---- Building compacted graph ----");
     // finding all cliques
-    let cliques = maximal_cliques(&graph);
+    let cliques = maximal_bidirectional_cliques(&graph);
     println!("Found {} cliques", cliques.len());
     println!(
         "Largest clique: {:?}",
@@ -221,6 +221,8 @@ fn main() {
         independent_cliques.iter().max_by_key(|c| c.len()).unwrap()
     );
 
+    println!("compacted graph should have {} primary points and {} secondary points", graph.n() - independent_cliques.iter().map(|c| c.len()).sum::<usize>() + independent_cliques.len(), independent_cliques.iter().map(|c| c.len()).sum::<usize>() - independent_cliques.len());
+
     let independent_cliques_box: Box<[Box<[IndexT]>]> = independent_cliques
         .into_iter()
         .map(|c| c.into_boxed_slice())
@@ -233,21 +235,38 @@ fn main() {
     let elapsed = start.elapsed();
     println!("Built compacted graph in {elapsed:?}");
 
+    println!("primary points: {:?}", compacted_graph.primary_points().len());
+    println!("secondary points: {:?}", compacted_graph.secondary_points().len());
+
     let start = Instant::now();
     // run queries on the compacted graph
     let results: Vec<Vec<u32>> = (0..queries.size())
         .into_par_iter()
-        .map(|i| compacted_graph.beam_search_post_expansion(queries.get(i), 20))
+        .map(|i| compacted_graph.beam_search_post_expansion(queries.get(i), 40))
         .collect();
     let elapsed = start.elapsed();
-    println!("Ran queries on compacted graph in {elapsed:?}");
+    println!("Ran post-expansion queries on compacted graph in {elapsed:?}");
 
     println!("Graph size: {}", compacted_graph.graph_size());
 
     // compute recall
-    let recall = (0..results.len())
+    let post_expansion_recall = (0..results.len())
         .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
         .sum::<f64>()
         / results.len().to_f64().unwrap();
-    println!("Recall: {recall:.5}");
+    println!("Post-expansion recall: {post_expansion_recall:.5}");
+
+    let start = Instant::now();
+    let results: Vec<Vec<u32>> = (0..queries.size())
+        .into_par_iter()
+        .map(|i| compacted_graph.beam_search_expand_visited(queries.get(i), 40))
+        .collect();
+    let elapsed = start.elapsed();
+    println!("Ran expand-visited queries on compacted graph in {elapsed:?}");
+
+    let expand_visited_recall = (0..results.len())
+        .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
+        .sum::<f64>()
+        / results.len().to_f64().unwrap();
+    println!("Expand-visited recall: {expand_visited_recall:.5}");
 }
