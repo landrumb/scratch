@@ -137,6 +137,59 @@ pub fn greedy_independent_cliques(cliques: &[Vec<IndexT>]) -> Vec<Vec<IndexT>> {
     result
 }
 
+/// Computes all maximal cliques in the directed `VectorGraph` where each pair of
+/// vertices must be connected by edges in *both* directions (i.e. the clique is
+/// taken inside the symmetric sub-graph of mutual edges).
+///
+/// The implementation reuses the Bron–Kerbosch algorithm from `maximal_cliques`
+/// but first constructs a neighborhood list that retains only mutually connected
+/// neighbors for every vertex.
+pub fn maximal_bidirectional_cliques(graph: &VectorGraph) -> Vec<Vec<IndexT>> {
+    let n = graph.n();
+
+    // Build sorted outgoing neighborhoods first so we can test membership via binary_search.
+    let outgoing: Vec<Vec<IndexT>> = (0..n)
+        .map(|i| {
+            let mut neigh = graph.get_neighborhood(i as IndexT).to_vec();
+            neigh.sort_unstable();
+            neigh
+        })
+        .collect();
+
+    // Keep only neighbors that are mutually connected (edge exists both ways).
+    let neighbors: Vec<Vec<IndexT>> = (0..n)
+        .map(|i| {
+            let mut mutual: Vec<IndexT> = outgoing[i]
+                .iter()
+                .cloned()
+                .filter(|&j| contains(&outgoing[j as usize], i as IndexT))
+                .collect();
+            mutual.sort_unstable();
+            mutual
+        })
+        .collect();
+
+    (0..n)
+        .into_par_iter()
+        .map(|i| {
+            let v = i as IndexT;
+
+            let mut p: Vec<IndexT> = neighbors[i].iter().cloned().filter(|&u| u > v).collect();
+            p.sort_unstable();
+            let mut x: Vec<IndexT> = neighbors[i].iter().cloned().filter(|&u| u < v).collect();
+            x.sort_unstable();
+
+            let r = vec![v];
+            let mut cliques = Vec::new();
+            bron_kerbosch_pivot(&neighbors, r, p, x, &mut cliques);
+            cliques
+        })
+        .reduce(Vec::new, |mut acc, mut cliques| {
+            acc.append(&mut cliques);
+            acc
+        })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

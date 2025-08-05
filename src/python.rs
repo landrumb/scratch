@@ -253,6 +253,18 @@ impl PyVectorGraph {
         clique::maximal_cliques(&self.graph)
     }
 
+    fn maximal_independent_cliques(&self) -> Vec<Vec<u32>> {
+        clique::greedy_independent_cliques(&self.maximal_cliques())
+    }
+
+    fn maximal_bidirectional_cliques(&self) -> Vec<Vec<u32>> {
+        clique::maximal_bidirectional_cliques(&self.graph)
+    }
+
+    fn maximal_independent_bidirectional_cliques(&self) -> Vec<Vec<u32>> {
+        clique::greedy_independent_cliques(&self.maximal_bidirectional_cliques())
+    }
+
     fn add_neighbor(&mut self, from: u32, to: u32) -> PyResult<()> {
         if from >= self.graph.n() as u32 || to >= self.graph.n() as u32 {
             return Err(PyErr::new::<pyo3::exceptions::PyIndexError, _>(format!(
