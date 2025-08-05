@@ -112,6 +112,34 @@ fn insert_sorted(vec: &mut Vec<IndexT>, value: IndexT) {
     }
 }
 
+/// Returns a set of pairwise disjoint cliques chosen greedily by size.
+///
+/// The input is expected to be the result of `maximal_cliques`.
+/// Cliques are considered in descending order of their cardinality; a clique is
+/// selected if none of its vertices has appeared in a previously selected
+/// clique. The selected cliques are returned in the order they were accepted.
+pub fn greedy_independent_cliques(cliques: &[Vec<IndexT>]) -> Vec<Vec<IndexT>> {
+    use std::collections::HashSet;
+
+    // Sort clique indices by descending size
+    let mut indices: Vec<usize> = (0..cliques.len()).collect();
+    indices.sort_by_key(|&i| std::cmp::Reverse(cliques[i].len()));
+
+    let mut used: HashSet<IndexT> = HashSet::new();
+    let mut result = Vec::new();
+
+    for i in indices {
+        if cliques[i].iter().all(|v| !used.contains(v)) {
+            for &v in &cliques[i] {
+                used.insert(v);
+            }
+            result.push(cliques[i].clone());
+        }
+    }
+
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
