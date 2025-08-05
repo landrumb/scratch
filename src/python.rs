@@ -7,6 +7,7 @@ use crate::data_handling::dataset::Subset;
 use crate::data_handling::dataset::VectorDataset;
 use crate::data_handling::dataset_traits::Dataset;
 use crate::graph::{IndexT, MutableGraph, VectorGraph};
+use crate::util::clique;
 use numpy::{PyArray1, PyReadonlyArray1, PyReadonlyArray2};
 use pyo3::prelude::*;
 use pyo3::IntoPyObjectExt;
@@ -246,6 +247,10 @@ impl PyVectorGraph {
 
     fn max_degree(&self) -> usize {
         self.graph.max_degree()
+    }
+
+    fn maximal_cliques(&self) -> Vec<Vec<u32>> {
+        clique::maximal_cliques(&self.graph)
     }
 
     fn add_neighbor(&mut self, from: u32, to: u32) -> PyResult<()> {
