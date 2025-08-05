@@ -3,6 +3,8 @@
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
 
+use crate::graph::VectorGraph;
+
 use super::{Graph, IndexT, MutableGraph};
 
 //TODO: a slice of slices is allocating each neighborhood separately and storing pointers and lengths we don't need
@@ -287,6 +289,16 @@ impl<'a> EdgeRange<'a> {
     pub fn prefetch(&self) {
         // This is a no-op in Rust since we don't have direct cache control
         // The C++ version uses __builtin_prefetch
+    }
+}
+
+impl From<ClassicGraph> for VectorGraph {
+    fn from(graph: ClassicGraph) -> VectorGraph {
+        let mut neighborhoods = Vec::new();
+        for i in 0..graph.n {
+            neighborhoods.push(graph.get_neighborhood(i).to_vec());
+        }
+        VectorGraph::new(neighborhoods)
     }
 }
 

@@ -67,6 +67,7 @@ impl VectorGraph {
         let mut queue = self.insertion_queues[from as usize].lock().unwrap();
         queue.push(to);
     }
+
     /// pushes a slice of new edges to the insertion queue of a node
     pub fn bulk_queue(&self, from: IndexT, to: &[IndexT]) {
         assert!(from < self.n() as IndexT);
@@ -113,6 +114,23 @@ impl VectorGraph {
             .collect::<Vec<_>>();
         nonempty_queues
     }
+
+    /// removes all edges from a node
+    pub fn clear_neighborhood(&mut self, i: IndexT) {
+        assert!(i < self.n() as IndexT);
+        self.neighborhoods[i as usize].clear();
+    }
+
+    /// applies a function to each neighborhood
+    pub fn apply_to_neighborhoods<F>(&mut self, f: F)
+    where
+        F: Fn(IndexT, &mut Vec<IndexT>),
+    {
+        self.neighborhoods
+            .iter_mut()
+            .enumerate()
+            .for_each(|(i, neighborhood)| f(i as IndexT, neighborhood));
+    }
 }
 
 impl Graph for VectorGraph {
@@ -143,6 +161,21 @@ impl From<&VectorGraph> for ClassicGraph {
         for i in 0..n {
             let neighborhood = graph.get_neighborhood(i);
             output_graph.set_neighborhood(i, neighborhood);
+        }
+        output_graph
+    }
+}
+
+impl From<VectorGraph> for ClassicGraph {
+    fn from(mut graph: VectorGraph) -> ClassicGraph {
+        let n = graph.n() as IndexT;
+        let r = graph.max_degree();
+
+        let mut output_graph = ClassicGraph::new(n, r);
+
+        // We can move out the neighborhoods without cloning to avoid extra allocations.
+        for (i, neighborhood) in graph.neighborhoods.drain(..).enumerate() {
+            output_graph.set_neighborhood(i as IndexT, &neighborhood);
         }
         output_graph
     }
