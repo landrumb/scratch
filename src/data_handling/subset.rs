@@ -1,9 +1,10 @@
 //! Dataset that's a subset of another dataset
 
+use std::sync::Arc;
+
 use crate::distance::SqEuclidean;
 
 use super::dataset_traits::{Dataset, Numeric};
-use std::sync::Arc;
 
 /// Important to note that indices here are relative to the subset, not the original dataset.
 pub struct Subset<T> {
@@ -32,6 +33,14 @@ impl<T: Numeric + SqEuclidean> Subset<T> {
                 self.dataset.as_ref() as *const _ as *const super::dataset::VectorDataset<T>;
             (*vector_dataset).get(orig_idx)
         }
+    }
+
+    pub fn further_subset(&self, indices: Vec<usize>) -> Self {
+        let mut new_indices = Vec::new();
+        for index in indices {
+            new_indices.push(self.indices[index]);
+        }
+        Subset::new(self.dataset.clone(), new_indices)
     }
 }
 
