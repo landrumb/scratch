@@ -2,6 +2,12 @@ use std::ops::Sub;
 
 use rand_distr::num_traits::ToPrimitive;
 
+#[cfg(feature = "dcmp")]
+use std::sync::atomic::{AtomicU64, Ordering};
+
+#[cfg(feature = "dcmp")]
+static DIST_CMP_COUNT: AtomicU64 = AtomicU64::new(0);
+
 /// calculate the euclidean distance between two vectors
 ///
 /// Example:
@@ -25,6 +31,10 @@ pub fn euclidean<T>(a: &[T], b: &[T]) -> f32
 where
     T: Copy + Into<f64> + Sub<Output = T> + SqEuclidean,
 {
+    #[cfg(feature = "dcmp")]
+    {
+        DIST_CMP_COUNT.fetch_add(1, Ordering::Relaxed);
+    }
     // assert_eq!(a.len(), b.len());
     // let sum = a
     //     .iter()
@@ -42,6 +52,10 @@ pub fn sq_euclidean<T>(a: &[T], b: &[T]) -> f32
 where
     T: Copy + Into<f64> + SqEuclidean,
 {
+    #[cfg(feature = "dcmp")]
+    {
+        DIST_CMP_COUNT.fetch_add(1, Ordering::Relaxed);
+    }
     // assert_eq!(a.len(), b.len());
     // let sum = a
     //     .iter()
@@ -93,5 +107,18 @@ impl SqEuclidean for i8 {
     fn sq_euclidean(a: &[Self], b: &[Self]) -> f32 {
         use simsimd::SpatialSimilarity;
         i8::sqeuclidean(a, b).unwrap().to_f32().unwrap()
+    }
+}
+
+/// Returns the number of distance comparisons performed (only if 'dcmp' feature is enabled)
+#[inline]
+pub fn get_distance_comparison_count() -> u64 {
+    #[cfg(feature = "dcmp")]
+    {
+        DIST_CMP_COUNT.load(Ordering::Relaxed)
+    }
+    #[cfg(not(feature = "dcmp"))]
+    {
+        0
     }
 }

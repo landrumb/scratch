@@ -1,6 +1,6 @@
 mod euclidean_;
 
-pub use self::euclidean_::{euclidean, sq_euclidean, SqEuclidean};
+pub use self::euclidean_::{euclidean, get_distance_comparison_count, sq_euclidean, SqEuclidean};
 
 pub enum Distance {
     Euclidean,
