@@ -1,4 +1,5 @@
 use clap::{Arg, Command};
+use scratch::distance::get_distance_comparison_count;
 use scratch::util::clique::{greedy_independent_cliques, maximal_bidirectional_cliques};
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -37,6 +38,12 @@ fn main() {
                 .long("query")
                 .value_name("FILE")
                 .help("Path to query.fbin"),
+        )
+        .arg(
+            Arg::new("graph")
+                .long("graph")
+                .value_name("FILE")
+                .help("Path to graph file"),
         )
         .arg(
             Arg::new("gt")
@@ -98,7 +105,7 @@ fn main() {
     // build the graph, or load it from disk if it exists
     start = Instant::now();
 
-    let graph_path = data_path.parent().unwrap().join("outputs/vamana.graph");
+    let graph_path = matches.get_one::<String>("graph").map(PathBuf::from).unwrap_or(data_path.parent().unwrap().join("outputs/vamana.graph"));
     let graph: VectorGraph;
     if graph_path.exists() {
         graph = ClassicGraph::read(graph_path.to_str().unwrap())
@@ -122,6 +129,7 @@ fn main() {
 
     // Run queries
     start = Instant::now();
+    let prev_distance_comparisons = get_distance_comparison_count();
     let results: Vec<Vec<u32>> = (0..queries.size())
         // let results: Vec<Vec<u32>> = (0..subset_size)
         .into_par_iter()
@@ -130,10 +138,11 @@ fn main() {
 
     let elapsed = start.elapsed();
     println!(
-        "ran {} queries in {:?} ({} QPS)",
+        "ran {} queries in {:?} ({:.3} QPS, {:.3} comparisons/query)",
         queries.size(),
         elapsed,
-        queries.size().to_f64().unwrap() / elapsed.as_secs_f64()
+        queries.size().to_f64().unwrap() / elapsed.as_secs_f64(),
+        (get_distance_comparison_count() - prev_distance_comparisons) as f64 / queries.size().to_f64().unwrap()
     );
 
     // Load ground truth and compute recall
@@ -207,19 +216,21 @@ fn main() {
 
     println!("---- Building compacted graph ----");
     // finding all cliques
-    let cliques = maximal_bidirectional_cliques(&graph);
+    let mut cliques = maximal_bidirectional_cliques(&graph);
     println!("Found {} cliques", cliques.len());
-    println!(
-        "Largest clique: {:?}",
-        cliques.iter().max_by_key(|c| c.len()).unwrap()
-    );
+    // println!(
+    //     "Largest clique: {:?}",
+    //     cliques.iter().max_by_key(|c| c.len()).unwrap()
+    // );
+
+    cliques.retain(|c| c.len() > 1);
 
     let independent_cliques = greedy_independent_cliques(&cliques);
     println!("Found {} independent cliques", independent_cliques.len());
-    println!(
-        "Largest independent clique: {:?}",
-        independent_cliques.iter().max_by_key(|c| c.len()).unwrap()
-    );
+    // println!(
+    //     "Largest independent clique: {:?}",
+    //     independent_cliques.iter().max_by_key(|c| c.len()).unwrap()
+    // );
 
     println!("compacted graph should have {} primary points and {} secondary points", graph.n() - independent_cliques.iter().map(|c| c.len()).sum::<usize>() + independent_cliques.len(), independent_cliques.iter().map(|c| c.len()).sum::<usize>() - independent_cliques.len());
 
@@ -239,13 +250,14 @@ fn main() {
     println!("secondary points: {:?}", compacted_graph.secondary_points().len());
 
     let start = Instant::now();
+    let prev_distance_comparisons = get_distance_comparison_count();
     // run queries on the compacted graph
     let results: Vec<Vec<u32>> = (0..queries.size())
         .into_par_iter()
         .map(|i| compacted_graph.beam_search_post_expansion(queries.get(i), 40))
         .collect();
     let elapsed = start.elapsed();
-    println!("Ran post-expansion queries on compacted graph in {elapsed:?}");
+    println!("Ran post-expansion queries on compacted graph in {elapsed:?} ({:.3} QPS, {:.3} comparisons/query)", queries.size().to_f64().unwrap() / elapsed.as_secs_f64(), (get_distance_comparison_count() - prev_distance_comparisons) as f64 / queries.size().to_f64().unwrap());
 
     println!("Graph size: {}", compacted_graph.graph_size());
 
@@ -257,16 +269,79 @@ fn main() {
     println!("Post-expansion recall: {post_expansion_recall:.5}");
 
     let start = Instant::now();
+    let prev_distance_comparisons = get_distance_comparison_count();
     let results: Vec<Vec<u32>> = (0..queries.size())
         .into_par_iter()
         .map(|i| compacted_graph.beam_search_expand_visited(queries.get(i), 40))
         .collect();
     let elapsed = start.elapsed();
-    println!("Ran expand-visited queries on compacted graph in {elapsed:?}");
+    println!("Ran expand-visited queries on compacted graph in {elapsed:?} ({:.3} QPS, {:.3} comparisons/query)", queries.size().to_f64().unwrap() / elapsed.as_secs_f64(), (get_distance_comparison_count() - prev_distance_comparisons) as f64 / queries.size().to_f64().unwrap());
 
     let expand_visited_recall = (0..results.len())
         .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
         .sum::<f64>()
         / results.len().to_f64().unwrap();
     println!("Expand-visited recall: {expand_visited_recall:.5}");
+
+    let start = Instant::now();
+    let prev_distance_comparisons = get_distance_comparison_count();
+    let results: Vec<Vec<u32>> = (0..queries.size())
+        .into_par_iter()
+        .map(|i| compacted_graph.beam_search_primary_points(queries.get(i), 40))
+        .collect();
+    let elapsed = start.elapsed();
+    println!("Ran primary points queries on compacted graph in {elapsed:?} ({:.3} QPS, {:.3} comparisons/query)", queries.size().to_f64().unwrap() / elapsed.as_secs_f64(), (get_distance_comparison_count() - prev_distance_comparisons) as f64 / queries.size().to_f64().unwrap());
+
+    let primary_points_recall = (0..results.len())
+        .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
+        .sum::<f64>()
+        / results.len().to_f64().unwrap();
+    println!("Primary points recall: {primary_points_recall:.5}");
+
+    let start = Instant::now();
+    let prev_distance_comparisons = get_distance_comparison_count();
+    let results: Vec<Vec<u32>> = (0..queries.size())
+        .into_par_iter()
+        .map(|i| compacted_graph.exhaustive_search_primary_points(queries.get(i)))
+        .collect();
+    let elapsed = start.elapsed();
+    println!("Ran exhaustive primary points queries on compacted graph in {elapsed:?} ({:.3} QPS, {:.3} comparisons/query)", queries.size().to_f64().unwrap() / elapsed.as_secs_f64(), (get_distance_comparison_count() - prev_distance_comparisons) as f64 / queries.size().to_f64().unwrap());
+
+    let exhaustive_primary_points_recall = (0..results.len())
+        .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
+        .sum::<f64>()
+        / results.len().to_f64().unwrap();
+    println!("Exhaustive primary points recall: {exhaustive_primary_points_recall:.5} (Expected: {})", compacted_graph.primary_points().len() as f64 / compacted_graph.graph_size() as f64);
+
+    let start = Instant::now();
+    let prev_distance_comparisons = get_distance_comparison_count();
+    let results: Vec<Vec<u32>> = (0..queries.size())
+        .into_par_iter()
+        .map(|i| compacted_graph.exhaustive_search_secondary_points(queries.get(i)))
+        .collect();
+    let elapsed = start.elapsed();
+    println!("Ran exhaustive secondary points queries on compacted graph in {elapsed:?} ({:.3} QPS, {:.3} comparisons/query)", queries.size().to_f64().unwrap() / elapsed.as_secs_f64(), (get_distance_comparison_count() - prev_distance_comparisons) as f64 / queries.size().to_f64().unwrap());
+
+    let exhaustive_secondary_points_recall = (0..results.len())
+        .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
+        .sum::<f64>()
+        / results.len().to_f64().unwrap();
+    println!("Exhaustive secondary points recall: {exhaustive_secondary_points_recall:.5} (Expected: {})", compacted_graph.secondary_points().len() as f64 / compacted_graph.graph_size() as f64);
+
+    println!("---- Experiments ----");
+
+    // what fraction of primary points with a clique have their nearest neighbor in their clique?
+    let gt_internal = GroundTruth::read(&_gt_path.parent().unwrap().join("internal.GT"));
+    let mut primary_points_with_nearest_neighbor_in_clique = 0;
+    for (i, list) in compacted_graph.get_posting_lists().iter() {
+        if list.len() == 1 {
+            continue;
+        }
+        let nearest_neighbor = gt_internal.get_neighbors(*i as usize)[1];
+        if list.contains(&nearest_neighbor) {
+            primary_points_with_nearest_neighbor_in_clique += 1;
+        }
+    }
+
+    println!("Representatives with nearest neighbor in clique: {} ({:.2}%)", primary_points_with_nearest_neighbor_in_clique, primary_points_with_nearest_neighbor_in_clique as f64 / compacted_graph.get_posting_lists().len() as f64 * 100.0);
 }

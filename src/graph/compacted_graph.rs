@@ -87,6 +87,48 @@ impl<T: Numeric + SqEuclidean + 'static> CompactedGraphIndex<T> {
             .collect()
     }
 
+    /// beam search but no secondary points are expanded
+    pub fn beam_search_primary_points(&self, query: &[T], beam_width: usize) -> Vec<IndexT> {
+        let (frontier, _) = beam_search_with_visited(
+            query,
+            &self.internal_graph,
+            &*self.internal_dataset,
+            0,
+            beam_width,
+            None,
+        );
+        frontier
+            .iter()
+            .map(|(i, _)| self.local_to_input_index[*i as usize])
+            .collect()
+    }
+
+    /// exhaustive search on the primary points
+    pub fn exhaustive_search_primary_points(&self, query: &[T]) -> Vec<IndexT> {
+        let mut frontier: Vec<(IndexT, f32)> = Vec::new();
+        for i in self.primary_points().iter() {
+            frontier.push((*i, self.internal_dataset.compare(query, *i as usize) as f32));
+        }
+        frontier.sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap());
+        frontier
+            .iter()
+            .map(|(i, _)| self.local_to_input_index[*i as usize])
+            .collect()
+    }
+
+    /// exhaustive search on the secondary points
+    pub fn exhaustive_search_secondary_points(&self, query: &[T]) -> Vec<IndexT> {
+        let mut frontier: Vec<(IndexT, f32)> = Vec::new();
+        for i in self.secondary_points().iter() {
+            frontier.push((*i, self.internal_dataset.compare(query, *i as usize) as f32));
+        }
+        frontier.sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap());
+        frontier
+            .iter()
+            .map(|(i, _)| self.local_to_input_index[*i as usize])
+            .collect()
+    }
+
     /// doesn't do any kind of reordering etc, the secondary points are just added to the representative's posting list and have neighborhoods of length 0. Inbound edges are directed to the representative.
     /// The representative of a posting list is the first element of the list.
     pub fn build_memory_inefficient(
@@ -158,6 +200,10 @@ impl<T: Numeric + SqEuclidean + 'static> CompactedGraphIndex<T> {
             }
         }
         secondary_points
+    }
+
+    pub fn get_posting_lists(&self) -> HashMap<IndexT, Box<[IndexT]>> {
+        self.posting_lists.clone()
     }
 
     // /// takes a graph, a dataset, and a set of posting lists, and constructs a CompactedGraphIndex where each posting list is represented in the graph by its lowest index element.
