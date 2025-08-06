@@ -145,8 +145,7 @@ where
         Ok(())
     }
 
-    #[allow(dead_code)]
-    fn shuffled_copy(&self, order: &[IndexT]) -> Self {
+    pub fn shuffled_copy(&self, order: &[IndexT]) -> Self {
         let mut new_data: Vec<T> = Vec::new();
 
         let chunks: Vec<&[T]> = self.data.chunks(self.dim).collect();
