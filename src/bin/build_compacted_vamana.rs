@@ -300,30 +300,39 @@ fn main() {
 
     let start = Instant::now();
     let prev_distance_comparisons = get_distance_comparison_count();
-    let results: Vec<Vec<u32>> = (0..queries.size())
+    let graph_primary_results: Vec<Vec<u32>> = (0..queries.size())
         .into_par_iter()
         .map(|i| compacted_graph.beam_search_primary_points(queries.get(i), 40))
         .collect();
     let elapsed = start.elapsed();
     println!("Ran primary points queries on compacted graph in {elapsed:?} ({:.3} QPS, {:.3} comparisons/query)", queries.size().to_f64().unwrap() / elapsed.as_secs_f64(), (get_distance_comparison_count() - prev_distance_comparisons) as f64 / queries.size().to_f64().unwrap());
 
-    let primary_points_recall = (0..results.len())
-        .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
+    let primary_points_recall = (0..graph_primary_results.len())
+        .map(|i| recall(graph_primary_results[i].as_slice(), gt.get_neighbors(i)))
         .sum::<f64>()
         / results.len().to_f64().unwrap();
     println!("Primary points recall: {primary_points_recall:.5}");
 
     let start = Instant::now();
     let prev_distance_comparisons = get_distance_comparison_count();
-    let results: Vec<Vec<u32>> = (0..queries.size())
-        .into_par_iter()
-        .map(|i| compacted_graph.exhaustive_search_primary_points(queries.get(i)))
-        .collect();
+    let exhaustive_primary_results: Vec<Vec<u32>> = (0..queries.size())
+    .into_par_iter()
+    .map(|i| compacted_graph.exhaustive_search_primary_points(queries.get(i)))
+    .collect();
     let elapsed = start.elapsed();
     println!("Ran exhaustive primary points queries on compacted graph in {elapsed:?} ({:.3} QPS, {:.3} comparisons/query)", queries.size().to_f64().unwrap() / elapsed.as_secs_f64(), (get_distance_comparison_count() - prev_distance_comparisons) as f64 / queries.size().to_f64().unwrap());
 
-    let exhaustive_primary_points_recall = (0..results.len())
-        .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
+    let exhaustive_primary_points_recall = (0..exhaustive_primary_results.len())
+    .map(|i| recall(exhaustive_primary_results[i].as_slice(), gt.get_neighbors(i)))
+    .sum::<f64>()
+    / results.len().to_f64().unwrap();
+    println!(
+        "Exhaustive primary points recall: {exhaustive_primary_points_recall:.5} (Expected: {})",
+        compacted_graph.primary_points().len() as f64 / compacted_graph.graph_size() as f64
+    );
+
+    let primary_points_specific_recall = (0..graph_primary_results.len())
+        .map(|i| recall(graph_primary_results[i].as_slice(), &exhaustive_primary_results[i][..10]))
         .sum::<f64>()
         / results.len().to_f64().unwrap();
     println!(
