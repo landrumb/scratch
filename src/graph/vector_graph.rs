@@ -47,6 +47,14 @@ impl VectorGraph {
         &self.neighborhoods[i as usize]
     }
 
+    /// returns all the out-neighbors queued for a node.
+    ///
+    /// Unlike `get_queued_edges`, does not empty the queue.
+    pub fn get_neighborhood_queue(&self, i: IndexT) -> &Mutex<Vec<IndexT>> {
+        assert!(i < self.n() as IndexT);
+        &self.insertion_queues[i as usize]
+    }
+
     /// sum of degrees of all nodes
     pub fn total_edges(&self) -> usize {
         self.neighborhoods.iter().map(|n| n.len()).sum()
