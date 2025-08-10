@@ -6,13 +6,12 @@ use std::path::Path;
 
 use memmap2::Mmap;
 
-use crate::distance::SqEuclidean;
+use crate::distance::DenseVector;
 
 use super::dataset::VectorDataset;
-use super::dataset_traits::Numeric;
 
 /// read a dataset from an fbin file
-pub fn read_fbin<T: Numeric + SqEuclidean>(path: &Path) -> VectorDataset<T> {
+pub fn read_fbin<T: DenseVector>(path: &Path) -> VectorDataset<T> {
     let file = File::open(path).expect("could not open file");
     let mmap = unsafe { Mmap::map(&file).expect("could not mmap file") };
     let mut reader = BufReader::new(&*mmap);
@@ -48,10 +47,7 @@ pub fn read_fbin<T: Numeric + SqEuclidean>(path: &Path) -> VectorDataset<T> {
 }
 
 /// reads only a subset of the dataset from an fbin file, but is otherwise the same as `read_fbin`
-pub fn read_fbin_subset<T: Numeric + SqEuclidean>(
-    path: &Path,
-    subset_size: usize,
-) -> VectorDataset<T> {
+pub fn read_fbin_subset<T: DenseVector>(path: &Path, subset_size: usize) -> VectorDataset<T> {
     let file = File::open(path).expect("could not open file");
     let mmap = unsafe { Mmap::map(&file).expect("could not mmap file") };
     let mut reader = BufReader::new(&*mmap);

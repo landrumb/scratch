@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use crate::distance::SqEuclidean;
+use crate::distance::DenseVector;
 
 use super::dataset_traits::{Dataset, Numeric};
 
@@ -12,7 +12,7 @@ pub struct Subset<T> {
     indices: Vec<usize>,
 }
 
-impl<T: Numeric + SqEuclidean> Subset<T> {
+impl<T: DenseVector> Subset<T> {
     pub fn new(dataset: Arc<dyn Dataset<T>>, indices: Vec<usize>) -> Self {
         Subset { dataset, indices }
     }

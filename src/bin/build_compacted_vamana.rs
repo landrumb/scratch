@@ -105,7 +105,10 @@ fn main() {
     // build the graph, or load it from disk if it exists
     start = Instant::now();
 
-    let graph_path = matches.get_one::<String>("graph").map(PathBuf::from).unwrap_or(data_path.parent().unwrap().join("outputs/vamana.graph"));
+    let graph_path = matches
+        .get_one::<String>("graph")
+        .map(PathBuf::from)
+        .unwrap_or(data_path.parent().unwrap().join("outputs/vamana.graph"));
     let graph: VectorGraph;
     if graph_path.exists() {
         graph = ClassicGraph::read(graph_path.to_str().unwrap())
@@ -142,7 +145,8 @@ fn main() {
         queries.size(),
         elapsed,
         queries.size().to_f64().unwrap() / elapsed.as_secs_f64(),
-        (get_distance_comparison_count() - prev_distance_comparisons) as f64 / queries.size().to_f64().unwrap()
+        (get_distance_comparison_count() - prev_distance_comparisons) as f64
+            / queries.size().to_f64().unwrap()
     );
 
     // Load ground truth and compute recall
@@ -232,7 +236,12 @@ fn main() {
     //     independent_cliques.iter().max_by_key(|c| c.len()).unwrap()
     // );
 
-    println!("compacted graph should have {} primary points and {} secondary points", graph.n() - independent_cliques.iter().map(|c| c.len()).sum::<usize>() + independent_cliques.len(), independent_cliques.iter().map(|c| c.len()).sum::<usize>() - independent_cliques.len());
+    println!(
+        "compacted graph should have {} primary points and {} secondary points",
+        graph.n() - independent_cliques.iter().map(|c| c.len()).sum::<usize>()
+            + independent_cliques.len(),
+        independent_cliques.iter().map(|c| c.len()).sum::<usize>() - independent_cliques.len()
+    );
 
     let independent_cliques_box: Box<[Box<[IndexT]>]> = independent_cliques
         .into_iter()
@@ -246,8 +255,14 @@ fn main() {
     let elapsed = start.elapsed();
     println!("Built compacted graph in {elapsed:?}");
 
-    println!("primary points: {:?}", compacted_graph.primary_points().len());
-    println!("secondary points: {:?}", compacted_graph.secondary_points().len());
+    println!(
+        "primary points: {:?}",
+        compacted_graph.primary_points().len()
+    );
+    println!(
+        "secondary points: {:?}",
+        compacted_graph.secondary_points().len()
+    );
 
     let start = Instant::now();
     let prev_distance_comparisons = get_distance_comparison_count();
@@ -311,7 +326,10 @@ fn main() {
         .map(|i| recall(results[i].as_slice(), gt.get_neighbors(i)))
         .sum::<f64>()
         / results.len().to_f64().unwrap();
-    println!("Exhaustive primary points recall: {exhaustive_primary_points_recall:.5} (Expected: {})", compacted_graph.primary_points().len() as f64 / compacted_graph.graph_size() as f64);
+    println!(
+        "Exhaustive primary points recall: {exhaustive_primary_points_recall:.5} (Expected: {})",
+        compacted_graph.primary_points().len() as f64 / compacted_graph.graph_size() as f64
+    );
 
     let start = Instant::now();
     let prev_distance_comparisons = get_distance_comparison_count();
@@ -343,5 +361,11 @@ fn main() {
         }
     }
 
-    println!("Representatives with nearest neighbor in clique: {} ({:.2}%)", primary_points_with_nearest_neighbor_in_clique, primary_points_with_nearest_neighbor_in_clique as f64 / compacted_graph.get_posting_lists().len() as f64 * 100.0);
+    println!(
+        "Representatives with nearest neighbor in clique: {} ({:.2}%)",
+        primary_points_with_nearest_neighbor_in_clique,
+        primary_points_with_nearest_neighbor_in_clique as f64
+            / compacted_graph.get_posting_lists().len() as f64
+            * 100.0
+    );
 }

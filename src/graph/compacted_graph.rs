@@ -1,17 +1,14 @@
 use std::{collections::HashMap, sync::Arc};
 
 use crate::{
-    data_handling::{
-        dataset::VectorDataset,
-        dataset_traits::{Dataset, Numeric},
-    },
-    distance::SqEuclidean,
+    data_handling::{dataset::VectorDataset, dataset_traits::Dataset},
+    distance::DenseVector,
     graph::{beam_search_with_visited, ClassicGraph, IndexT, VectorGraph},
 };
 
 pub struct CompactedGraphIndex<T>
 where
-    T: Numeric + SqEuclidean + 'static,
+    T: DenseVector,
 {
     internal_graph: ClassicGraph,
     internal_dataset: Arc<dyn Dataset<T>>,
@@ -19,7 +16,7 @@ where
     local_to_input_index: Box<[IndexT]>,
 }
 
-impl<T: Numeric + SqEuclidean + 'static> CompactedGraphIndex<T> {
+impl<T: DenseVector> CompactedGraphIndex<T> {
     pub fn graph_size(&self) -> usize {
         self.internal_graph.n as usize
     }
@@ -72,9 +69,16 @@ impl<T: Numeric + SqEuclidean + 'static> CompactedGraphIndex<T> {
         // if anything in the visited set corresponds to a posting list, try to add the rest of the posting list to the beam
         let candidates: Vec<(IndexT, f32)> = visited
             .iter()
-            .filter_map(|(id, _)| self.posting_lists.get(&id).map(|list| {
-                list.iter().map(|&index| (index, self.internal_dataset.compare(query, index as usize) as f32))
-            }))
+            .filter_map(|(id, _)| {
+                self.posting_lists.get(&id).map(|list| {
+                    list.iter().map(|&index| {
+                        (
+                            index,
+                            self.internal_dataset.compare(query, index as usize) as f32,
+                        )
+                    })
+                })
+            })
             .flatten()
             .collect();
 
