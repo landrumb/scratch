@@ -3,8 +3,8 @@ use std::collections::HashSet;
 use std::sync::Arc;
 
 use crate::data_handling::dataset::{Subset, VectorDataset};
-use crate::data_handling::dataset_traits::{Dataset, Numeric};
-use crate::distance::SqEuclidean;
+use crate::data_handling::dataset_traits::Dataset;
+use crate::distance::DenseVector;
 use crate::graph::IndexT;
 use crate::util::DSU;
 
@@ -16,7 +16,7 @@ const EXHAUSTIVE_CUTOFF: usize = 1000;
 /// Each set contains the indices of vectors that are identical.
 pub fn duplicate_sets<T>(dataset: Arc<VectorDataset<T>>, radius: Option<f64>) -> Vec<HashSet<usize>>
 where
-    T: Numeric + SqEuclidean + 'static,
+    T: DenseVector,
 {
     // we use recursive parallel bisection to winnow down the search space;
     // once we have < 100 vectors or we do a partition that doesn't reduce the number of vectors,
@@ -32,7 +32,7 @@ where
 /// recursive helper function to find duplicates in a subset of the dataset
 pub fn subset_duplicates<T>(subset: &Subset<T>, radius: f64) -> Vec<HashSet<usize>>
 where
-    T: Numeric + SqEuclidean + 'static,
+    T: DenseVector,
 {
     if subset.size() < EXHAUSTIVE_CUTOFF {
         return exhaustive_subset_duplicates(subset, radius);
@@ -83,7 +83,7 @@ where
 /// this is potentially approximate, but assumes equality is transitive, so might be wonky
 fn exhaustive_subset_duplicates<T>(subset: &Subset<T>, radius: f64) -> Vec<HashSet<usize>>
 where
-    T: Numeric + SqEuclidean,
+    T: DenseVector,
 {
     let mut equality_dsu = DSU::new(subset.size());
     for i in 0..subset.size() {

@@ -3,18 +3,18 @@
 pub use super::distance_matrix::DistanceMatrix;
 pub use super::subset::Subset;
 
-use std::{ops::Sub, path::Path};
+use std::path::Path;
 
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::{
-    distance::{euclidean, SqEuclidean},
+    distance::{euclidean, DenseVector},
     graph::IndexT,
 };
 
-use super::dataset_traits::{Dataset, Numeric};
+use super::dataset_traits::Dataset;
 
-impl<T: Numeric + SqEuclidean> Dataset<T> for VectorDataset<T> {
+impl<T: DenseVector> Dataset<T> for VectorDataset<T> {
     fn compare_internal(&self, i: usize, j: usize) -> f64 {
         self.compare_euclidean(i, j)
     }
@@ -30,16 +30,13 @@ impl<T: Numeric + SqEuclidean> Dataset<T> for VectorDataset<T> {
 }
 
 #[derive(Debug, Clone)]
-pub struct VectorDataset<T: Numeric + SqEuclidean> {
+pub struct VectorDataset<T: DenseVector> {
     data: Box<[T]>,
     pub n: usize,
     pub dim: usize,
 }
 
-impl<T: Numeric + SqEuclidean> VectorDataset<T>
-where
-    T: Copy + Into<f64> + Sub<Output = T>,
-{
+impl<T: DenseVector> VectorDataset<T> {
     pub fn new(data: Box<[T]>, n: usize, dim: usize) -> VectorDataset<T> {
         assert!(
             data.len() == n * dim,
