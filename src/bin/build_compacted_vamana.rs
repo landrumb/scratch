@@ -336,8 +336,7 @@ fn main() {
         .sum::<f64>()
         / results.len().to_f64().unwrap();
     println!(
-        "Exhaustive primary points recall: {exhaustive_primary_points_recall:.5} (Expected: {})",
-        compacted_graph.primary_points().len() as f64 / compacted_graph.graph_size() as f64
+        "Primary points specific recall: {primary_points_specific_recall:.5}"
     );
 
     let start = Instant::now();
