@@ -2,6 +2,7 @@ use std::collections::{HashMap, HashSet};
 pub mod clique;
 pub mod dataset;
 pub mod duplicates;
+pub mod edge_filter;
 pub mod ground_truth;
 pub mod recall;
 
