@@ -141,6 +141,16 @@ impl VectorGraph {
     }
 }
 
+impl Clone for VectorGraph {
+    fn clone(&self) -> Self {
+        let insertion_queues: Vec<Mutex<Vec<IndexT>>> = self.insertion_queues.iter().map(|q| Mutex::new(q.lock().unwrap().clone())).collect();
+        VectorGraph {
+            neighborhoods: self.neighborhoods.clone(),
+            insertion_queues,
+        }
+    }
+}
+
 impl Graph for VectorGraph {
     fn neighbors(&self, i: IndexT) -> &[IndexT] {
         self.get_neighborhood(i)
