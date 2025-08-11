@@ -1,10 +1,10 @@
 use std::{collections::HashMap, sync::Arc};
 
 use crate::{
-    constructions::neighbor_selection::robust_prune_unbounded, data_handling::{
-        dataset::VectorDataset,
-        dataset_traits::Dataset,
-    }, distance::DenseVector, graph::{beam_search_with_visited, ClassicGraph, IndexT, MutableGraph, VectorGraph}
+    constructions::neighbor_selection::robust_prune_unbounded,
+    data_handling::{dataset::VectorDataset, dataset_traits::Dataset},
+    distance::DenseVector,
+    graph::{beam_search_with_visited, ClassicGraph, IndexT, MutableGraph, VectorGraph},
 };
 
 pub struct CompactedGraphIndex<T>
@@ -222,9 +222,8 @@ impl<T: DenseVector> CompactedGraphIndex<T> {
                     .ok()
                     .unwrap()
                     .to_vec();
-                    
-                for queued_neighbor in queue_neighbors {
 
+                for queued_neighbor in queue_neighbors {
                     // if let Some(other_representative) = secondary_points_to_representatives.get(&queued_neighbor) {
                     //     graph.queue_edge(representative, *other_representative);
                     // } else {
@@ -239,11 +238,11 @@ impl<T: DenseVector> CompactedGraphIndex<T> {
         // running robust prune here so it uses the secondary points when evaluating edges
         for p in output_posting_lists.keys() {
             let mut candidates = graph
-                    .get_neighborhood_queue(*p)
-                    .lock()
-                    .ok()
-                    .unwrap()
-                    .to_vec();
+                .get_neighborhood_queue(*p)
+                .lock()
+                .ok()
+                .unwrap()
+                .to_vec();
 
             candidates.extend_from_slice(graph.get_neighborhood(*p));
 
@@ -253,7 +252,10 @@ impl<T: DenseVector> CompactedGraphIndex<T> {
             let candidates = candidates
                 .iter()
                 .map(|i| {
-                    (*i, dataset.compare_internal(*i as usize, *p as usize) as f32)
+                    (
+                        *i,
+                        dataset.compare_internal(*i as usize, *p as usize) as f32,
+                    )
                 })
                 .collect();
 
@@ -275,7 +277,6 @@ impl<T: DenseVector> CompactedGraphIndex<T> {
                 neighborhood.dedup();
             }
         });
-
 
         let internal_graph = graph.into();
 

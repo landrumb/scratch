@@ -346,9 +346,7 @@ fn main() {
         })
         .sum::<f64>()
         / results.len().to_f64().unwrap();
-    println!(
-        "Primary points specific recall: {primary_points_specific_recall:.5}"
-    );
+    println!("Primary points specific recall: {primary_points_specific_recall:.5}");
 
     let start = Instant::now();
     let prev_distance_comparisons = get_distance_comparison_count();
