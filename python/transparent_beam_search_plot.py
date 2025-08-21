@@ -207,7 +207,9 @@ def main():
     # Save
     output_dir = "../outputs/plots"
     os.makedirs(output_dir, exist_ok=True)
-    out_path = os.path.join(output_dir, "transparent_beam_search_rank_progress_grid.png")
+    out_path = os.path.join(
+        output_dir, "transparent_beam_search_rank_progress_grid.png"
+    )
     fig.savefig(out_path)
     plt.show()
 

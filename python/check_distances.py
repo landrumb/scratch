@@ -12,7 +12,7 @@ if __name__ == "__main__":
     points = fbin_to_numpy(points_file)
     n, d = points.shape
     print(f"Loaded {n} points with {d} dimensions")
-    
+
     print("give indices of 2 points to compare (return to exit)")
     while True:
         try:
@@ -27,4 +27,3 @@ if __name__ == "__main__":
             print(dist, points[i], points[j])
         except Exception as e:
             print(f"Error: {e}")
-    

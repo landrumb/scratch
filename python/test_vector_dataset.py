@@ -40,7 +40,9 @@ for i, j in zip(random_indices[:-1], random_indices[1:]):
     print(f"Distance between points {i} and {j}:")
     print(f"  Rust: {rust_distance}")
     print(f"  NumPy: {numpy_distance}")
-    assert np.isclose(rust_distance, numpy_distance), "compare_internal gives incorrect results"
+    assert np.isclose(rust_distance, numpy_distance), (
+        "compare_internal gives incorrect results"
+    )
 
 # Test compare
 print("\nTesting compare...")
@@ -65,7 +67,7 @@ results = dataset.brute_force(query)
 print(f"Top 5 closest points to query: {results[:5]}")
 # Verify ordering
 for i in range(len(results) - 1):
-    assert results[i][1] <= results[i+1][1], "brute_force results not properly sorted"
+    assert results[i][1] <= results[i + 1][1], "brute_force results not properly sorted"
 
 # Test brute_force_internal
 print("\nTesting brute_force_internal...")
@@ -75,7 +77,9 @@ results = dataset.brute_force_internal(query_idx)
 print(f"Top 5 closest points to point {query_idx}: {results[:5]}")
 # Verify ordering
 for i in range(len(results) - 1):
-    assert results[i][1] <= results[i+1][1], "brute_force_internal results not properly sorted"
+    assert results[i][1] <= results[i + 1][1], (
+        "brute_force_internal results not properly sorted"
+    )
 
 # Test brute_force_subset
 print("\nTesting brute_force_subset...")
@@ -85,7 +89,9 @@ results = dataset.brute_force_subset(query, subset)
 print(f"Top 5 closest points to query (from subset): {results[:5]}")
 # Verify ordering
 for i in range(len(results) - 1):
-    assert results[i][1] <= results[i+1][1], "brute_force_subset results not properly sorted"
+    assert results[i][1] <= results[i + 1][1], (
+        "brute_force_subset results not properly sorted"
+    )
 
 # Test brute_force_subset_internal
 print("\nTesting brute_force_subset_internal...")
@@ -94,42 +100,44 @@ results = dataset.brute_force_subset_internal(query_idx, subset)
 print(f"Top 5 closest points to point {query_idx} (from subset): {results[:5]}")
 # Verify ordering
 for i in range(len(results) - 1):
-    assert results[i][1] <= results[i+1][1], "brute_force_subset_internal results not properly sorted"
+    assert results[i][1] <= results[i + 1][1], (
+        "brute_force_subset_internal results not properly sorted"
+    )
 
 # Visualize the results
 print("\nGenerating visualization...")
 plt.figure(figsize=(10, 8))
 
 # Plot all points
-plt.scatter(points[:, 0], points[:, 1], alpha=0.3, color='blue', label='All points')
+plt.scatter(points[:, 0], points[:, 1], alpha=0.3, color="blue", label="All points")
 
 # Plot query point
-plt.scatter(query[0], query[1], color='red', s=100, label='Query point')
+plt.scatter(query[0], query[1], color="red", s=100, label="Query point")
 
 # Plot closest points from brute_force
 closest_indices = [idx for idx, _ in results[:10]]
 plt.scatter(
-    points[closest_indices, 0], 
-    points[closest_indices, 1], 
-    color='green', 
-    s=50, 
-    label='Top 10 closest (all)'
+    points[closest_indices, 0],
+    points[closest_indices, 1],
+    color="green",
+    s=50,
+    label="Top 10 closest (all)",
 )
 
 # Plot subset points
 plt.scatter(
-    points[subset, 0], 
-    points[subset, 1], 
-    alpha=0.5, 
-    color='orange', 
-    s=30, 
-    label='Subset points'
+    points[subset, 0],
+    points[subset, 1],
+    alpha=0.5,
+    color="orange",
+    s=30,
+    label="Subset points",
 )
 
-plt.title('Vector Dataset Nearest Neighbor Search')
+plt.title("Vector Dataset Nearest Neighbor Search")
 plt.legend()
 plt.tight_layout()
-plt.savefig('vector_dataset_test.png')
+plt.savefig("vector_dataset_test.png")
 print("Visualization saved to 'vector_dataset_test.png'")
 
 # Test VectorGraph functionality
@@ -194,12 +202,12 @@ neighborhoods = [
     [0, 4, 5],  # Node 1 connected to 0, 4, 5
     [0, 6, 7],  # Node 2 connected to 0, 6, 7
     [0, 8, 9],  # Node 3 connected to 0, 8, 9
-    [1],        # Node 4 connected to 1
-    [1],        # Node 5 connected to 1
-    [2],        # Node 6 connected to 2
-    [2],        # Node 7 connected to 2
-    [3],        # Node 8 connected to 3
-    [3],        # Node 9 connected to 3
+    [1],  # Node 4 connected to 1
+    [1],  # Node 5 connected to 1
+    [2],  # Node 6 connected to 2
+    [2],  # Node 7 connected to 2
+    [3],  # Node 8 connected to 3
+    [3],  # Node 9 connected to 3
 ]
 graph2 = PyVectorGraph(neighborhoods)
 
